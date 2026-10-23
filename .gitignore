@@ -3,3 +3,6 @@
 *.sql
 *.bak
 .DS_Store
+
+# Client data, never committed
+private/
