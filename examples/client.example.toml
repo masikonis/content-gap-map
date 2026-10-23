@@ -1,0 +1,21 @@
+# One file per client: private/<client>/client.toml
+# Copy this file there and fill it in. The private/ folder is never committed.
+
+name = "Example Client"
+site_type = "services"   # b2b-software, services, publisher or generic
+language = "en"
+country = "us"
+
+# The site we are mapping gaps for.
+[primary]
+name = "Example Client"
+url = "https://example.com"
+
+# Any number of competitors: repeat the block for each one.
+[[competitors]]
+name = "Competitor One"
+url = "https://example.org"
+
+[[competitors]]
+name = "Competitor Two"
+url = "https://example.net"
