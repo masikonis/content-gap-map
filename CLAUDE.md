@@ -1,7 +1,6 @@
 # content-gap-map
 
-- Learning project: work one step at a time, explain each concept, offer options, and wait for
-  approval before writing code.
+- Work one step at a time: explain each concept, offer options, and wait for the decision.
 - Log every decision in `docs/decisions.md`: what we chose, the alternatives, and why.
 - Public repo. Client data never reaches git in any form: no client names, domains, crawled
   pages, traces, labels or reports in files, tests, examples, docs or commit messages. It lives
