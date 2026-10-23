@@ -174,11 +174,11 @@ Ruled out:
 | **A. A command-line tool writes files, and a static React viewer reads them** | Fewest moving parts. The demo can be hosted free on GitHub Pages. | No starting runs or labelling from the browser. |
 | **B. A local API server plus a React app** | Start runs and label in the browser. | A server, two processes, more code. |
 
-## 17. Frontend libraries (written by hand)
+## 17. Frontend libraries
 
 | Area | Options |
 |---|---|
-| **Tables** | (A) a plain `<table>`: nothing to learn, but I write sorting myself. (B) TanStack Table: headless, so I write the markup and it handles sorting and filtering. (C) AG Grid: everything included, but a big black box. |
+| **Tables** | (A) a plain `<table>`: nothing to learn, but sorting is our own code. (B) TanStack Table: headless, so we write the markup and it handles sorting and filtering. (C) AG Grid: everything included, but a big black box. |
 | **Charts** | (A) Observable Plot: small and SVG-based, also covers a scatter map of the topics. (B) Recharts: made for React, but heavier. (C) visx: very flexible, but a lot to build by hand. |
 | **Styling** | (A) CSS modules: plain CSS, nothing extra. (B) Tailwind: fast to write, but long class strings and a build plugin. |
 | **Routing** | (A) none: a few views switched in state. (B) TanStack Router: typed URLs, good for filters. (C) React Router: the most common. |
