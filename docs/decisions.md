@@ -24,3 +24,24 @@ Adding a site type means adding one profile, not changing the core.
 **Why:** buyers on these sites ask different kinds of questions and get answers on different kinds
 of pages, so treating them alike gives weaker results. Keeping the differences in profiles keeps
 the core small and makes new types cheap to add.
+
+## 2026-10-23: "Services" means service businesses
+
+**Chose:** the services profile is for businesses that sell a service to local or individual
+customers: an exterior cleaning company, a law firm, a language school.
+
+**Alternatives:** professional B2B services such as agencies and consultancies.
+
+**Why:** these businesses get many buyer questions (price, process, trust, area served) that
+their sites often don't answer, and they are a large share of the sites this tool will be run on.
+B2B agencies can use the B2B software profile or the generic one.
+
+## 2026-10-23: English by default, any language as an input
+
+**Chose:** language and country are inputs to every run, with English as the default. Each run
+uses one language. Other languages run but are marked untested until they have their own test set.
+
+**Alternatives:** English only; claim every language works from the start.
+
+**Why:** the AI models and data sources handle many languages, so blocking them costs nothing.
+Claiming they work would need a labelled test set per language, which we don't have yet.

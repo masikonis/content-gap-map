@@ -11,17 +11,24 @@ and shows which questions you answer, which only your competitors answer, and wh
 well. Every verdict links to the page and passage behind it, so you can check the work. You end
 with a short list of the pages worth writing next, based on real questions instead of guesses.
 
+It is built for B2B software, service businesses and publishers, and works on other sites too.
+English first; other languages run but are not yet tested.
+
 ## How we'll know it works
 
-The tool is only useful if its verdicts can be trusted, so it ships with evals: fixed test sets,
-labelled by a person, with scores published here. They will measure:
+Success comes in milestones. Each one has to work reliably before the next one is worth building:
 
-- whether the "answered" verdicts match a person's judgment,
-- whether every cited passage really exists on the cited page,
-- whether questions are grouped the way a person would group them,
-- whether two runs on the same data give the same gaps,
-- whether the top gaps are real and worth a page,
-- what each run costs and how long it takes.
+1. **Real questions.** Collect the questions real buyers ask, not ones a machine made up.
+2. **Clear topics.** Group the questions that mean the same thing, the way a person would.
+3. **The right content.** Collect the content from your site and your competitors' sites that
+   could answer a buyer, and leave out the rest.
+4. **Honest verdicts.** Decide whether each site answers each question, partly answers it or
+   misses it, and show the proof.
+5. **Gaps worth acting on.** A short list of missing answers that a person agrees are real and
+   worth a page.
+
+Each milestone is checked against a fixed test set labelled by a person, and the scores, cost and
+run time are published here.
 
 ## Status
 
