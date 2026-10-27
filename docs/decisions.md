@@ -61,3 +61,28 @@ appears, so it is blind to the gaps the tool is meant to find.
 **Why:** "it works" needs a number, and every later milestone stands on this one. "People also
 ask" is the closest public view of what buyers ask, but it can't be collected automatically
 within Google's rules, which makes it a good independent test of any collector we can automate.
+
+## 2026-10-27: First collector uses autocomplete, Search Console and Claude web search; the answer key becomes "People also ask" only
+
+**Chose:** the first automated collector combines three sources:
+- **Google autocomplete,** each seed expanded with question words and a to z. Plain code, close to
+  what people type, about the same result every run.
+- **Search Console,** through its API, for sites we have access to. The best real demand data,
+  including questions typed by AI assistants.
+- **Claude web search,** for questions people wrote out in full on forums, Q&A pages and articles,
+  each kept with its URL.
+
+This reverses part of the milestone 1 entry above. Search Console moves from the answer key into
+the collector, and the answer key is now "People also ask" alone.
+
+**Alternatives:** autocomplete and Claude web search only, with Search Console left out to keep the
+answer key whole (my first suggestion); Bing autocomplete; driving a browser on Google; questions
+written by Claude and kept only if autocomplete confirms them.
+
+**Why:** Nerijus pushed back on leaving Search Console out: "maybe C is useful as well". He was
+right. It is the strongest source we have for a client's site. The only problem was scoring: a
+collector that uses Search Console would "find" the Search Console half of the answer key just by
+copying it. Scoring against "People also ask" alone fixes that, since none of the three sources can
+see it, and that half was the stronger one anyway. Each run reports what every source found, and
+which questions only one of them found, so a source that adds nothing gets cut. Bing, browser-driven
+Google and Claude-written questions wait until the score shows something missing.
