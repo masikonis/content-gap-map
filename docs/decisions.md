@@ -45,3 +45,19 @@ uses one language. Other languages run but are marked untested until they have t
 
 **Why:** the AI models and data sources handle many languages, so blocking them costs nothing.
 Claiming they work would need a labelled test set per language, which we don't have yet.
+
+## 2026-10-27: Milestone 1 is proven against a hand-collected answer key
+
+**Chose:** milestone 1 ("real questions") counts as done when an automated collector finds the
+questions in an answer key collected by hand. The answer key has two parts: Google's "People also
+ask" questions for each seed, collected in a browser by a person, and the question-shaped searches
+from the site's own Search Console. The score is the share of answer-key questions the collector
+finds, matched by meaning rather than exact words. The target is set after the first scored run.
+
+**Alternatives:** no answer key, judging the collector's output by reading it; Search Console
+alone, which is free and already collected but only covers searches where the site already
+appears, so it is blind to the gaps the tool is meant to find.
+
+**Why:** "it works" needs a number, and every later milestone stands on this one. "People also
+ask" is the closest public view of what buyers ask, but it can't be collected automatically
+within Google's rules, which makes it a good independent test of any collector we can automate.
