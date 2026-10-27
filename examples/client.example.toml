@@ -6,6 +6,12 @@ site_type = "services"   # b2b-software, services, publisher or generic
 language = "en"
 country = "us"
 
+# Starting phrases for question collection: the services to map, optionally with a town.
+seeds = [
+  "window cleaning",
+  "window cleaning springfield",
+]
+
 # The site we are mapping gaps for.
 [primary]
 name = "Example Client"
