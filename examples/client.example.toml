@@ -8,8 +8,8 @@ country = "us"
 
 # Starting phrases for question collection: the services to map, optionally with a town.
 seeds = [
-  "window cleaning",
-  "window cleaning springfield",
+  "piano lessons",
+  "piano lessons springfield",
 ]
 
 # The site we are mapping gaps for.

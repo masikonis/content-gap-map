@@ -1,6 +1,7 @@
 # Decisions
 
-Newest last. Each entry: what we chose, the alternatives, and why.
+The current decisions about the tool. Each entry: what we chose, the alternatives, and why. When a
+decision changes, its entry is rewritten, so this page always shows the current state.
 
 ## 2026-10-23: "Answered" has three levels
 
@@ -28,7 +29,7 @@ the core small and makes new types cheap to add.
 ## 2026-10-23: "Services" means service businesses
 
 **Chose:** the services profile is for businesses that sell a service to local or individual
-customers: an exterior cleaning company, a law firm, a language school.
+customers: a plumber, a law firm, a language school.
 
 **Alternatives:** professional B2B services such as agencies and consultancies.
 
@@ -39,32 +40,58 @@ B2B agencies can use the B2B software profile or the generic one.
 ## 2026-10-23: English by default, any language as an input
 
 **Chose:** language and country are inputs to every run, with English as the default. Each run
-uses one language. Other languages run but are marked untested until they have their own test set.
+uses one language. Other languages are accepted but marked untested until they have their own
+test set.
 
 **Alternatives:** English only; claim every language works from the start.
 
 **Why:** the AI models and data sources handle many languages, so blocking them costs nothing.
-Claiming they work would need a labelled test set per language, which we don't have yet.
+Claiming they work would need a test set per language, which we don't have yet.
 
-## 2026-10-27: Milestone 1 is proven against a hand-collected answer key
+## 2026-10-23: Free software and data only; AI through Claude Code
+
+**Chose:** every library, data source and service is free and open. Judgment steps run through
+Claude Code on an existing subscription.
+
+**Alternatives:** paid search data APIs (DataForSEO, SerpApi); paid model APIs; local open-weight
+models.
+
+**Why:** this is a lab experiment, and a tool anyone can run shouldn't need paid accounts. Claude
+Code gives a strong model with structured output and usage reporting at no extra cost. Local models
+strong enough to judge answers need far more memory than a typical laptop has.
+
+## 2026-10-23: One file per client; client data never leaves a private folder
+
+**Chose:** each client is one file holding its primary site, any number of competitors, its
+language, country, site type and seeds. Everything that belongs to a client (that file, crawls,
+traces, labels, reports and its own decisions) lives in a gitignored `private/<client>/` folder.
+A public template is in `examples/client.example.toml`.
+
+**Alternatives:** a separate private repository for client data; site lists in environment files.
+
+**Why:** one folder per client makes adding clients trivial, and keeping it all out of git means
+nothing about a client can be published by accident. A separate repository would add a second
+place to keep in sync, and environment files suit secrets, not lists of sites.
+
+## 2026-10-27: Milestone 1 is proven against "People also ask" collected by hand
 
 **Chose:** milestone 1 ("real questions") counts as done when an automated collector finds the
-questions in an answer key collected by hand. The answer key has two parts: Google's "People also
-ask" questions for each seed, collected in a browser by a person, and the question-shaped searches
-from the site's own Search Console. The score is the share of answer-key questions the collector
-finds, matched by meaning rather than exact words. The target is set after the first scored run.
+questions in an answer key: Google's "People also ask" questions for each seed, collected in a
+browser by a person. The score is the share of answer-key questions the collector finds, matched
+by meaning rather than exact words. The target is set after the first scored run.
 
-**Alternatives:** no answer key, judging the collector's output by reading it; Search Console
-alone, which is free and already collected but only covers searches where the site already
-appears, so it is blind to the gaps the tool is meant to find.
+**Alternatives:** no answer key, judging the collector's output by reading it; the site's own
+Search Console searches as the answer key.
 
 **Why:** "it works" needs a number, and every later milestone stands on this one. "People also
-ask" is the closest public view of what buyers ask, but it can't be collected automatically
-within Google's rules, which makes it a good independent test of any collector we can automate.
+ask" is the closest public view of what buyers ask, and it can't be collected automatically within
+Google's rules, so no source the collector uses can see it. That keeps the test independent.
+Search Console fails that test, because the collector uses it as a source, and it only covers
+searches where the site already appears.
 
-## 2026-10-27: First collector uses autocomplete, Search Console and Claude web search; the answer key becomes "People also ask" only
+## 2026-10-27: The first collector uses autocomplete, Search Console and Claude web search
 
-**Chose:** the first automated collector combines three sources:
+**Chose:** three sources, combined:
 - **Google autocomplete,** each seed expanded with question words and a to z. Plain code, close to
   what people type, about the same result every run.
 - **Search Console,** through its API, for sites we have access to. The best real demand data,
@@ -72,17 +99,13 @@ within Google's rules, which makes it a good independent test of any collector w
 - **Claude web search,** for questions people wrote out in full on forums, Q&A pages and articles,
   each kept with its URL.
 
-This reverses part of the milestone 1 entry above. Search Console moves from the answer key into
-the collector, and the answer key is now "People also ask" alone.
+**Alternatives:** Bing autocomplete; the Stack Exchange and Hacker News APIs; the WildChat dataset
+of real AI chats; Google driven through a browser; questions written by Claude and kept only if
+autocomplete confirms them. Ruled out: scraping "People also ask" (Google's robots.txt disallows
+it), Reddit (closed to new developers), Quora and review sites (their terms forbid scraping), and
+paid search data APIs.
 
-**Alternatives:** autocomplete and Claude web search only, with Search Console left out to keep the
-answer key whole (my first suggestion); Bing autocomplete; driving a browser on Google; questions
-written by Claude and kept only if autocomplete confirms them.
-
-**Why:** Nerijus pushed back on leaving Search Console out: "maybe C is useful as well". He was
-right. It is the strongest source we have for a client's site. The only problem was scoring: a
-collector that uses Search Console would "find" the Search Console half of the answer key just by
-copying it. Scoring against "People also ask" alone fixes that, since none of the three sources can
-see it, and that half was the stronger one anyway. Each run reports what every source found, and
-which questions only one of them found, so a source that adds nothing gets cut. Bing, browser-driven
-Google and Claude-written questions wait until the score shows something missing.
+**Why:** together they cover what people search for and how they phrase it in their own words,
+which is roughly what "People also ask" combines. Each run reports what every source found and
+which questions only one of them found, so a source that adds nothing gets cut. The alternatives
+wait until the score shows something missing.

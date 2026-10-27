@@ -3,7 +3,8 @@
 - Work one step at a time: explain each concept, offer options, and wait for the decision.
 - Log every decision: what we chose, the alternatives, and why. Decisions about the tool go in
   `docs/decisions.md`. Decisions about a client (its seeds, sites, settings, findings) go in
-  `private/<client>/decisions.md`.
+  `private/<client>/decisions.md`. When a decision changes, rewrite its entry so the log shows
+  the current state; git history keeps the trail. A decided part leaves `docs/architecture.md`.
 - Public repo. Client data never reaches git in any form: no client names, domains, crawled
   pages, traces, labels or reports in files, tests, examples, docs or commit messages. It lives
   only in the gitignored `private/` folder. Code reads it from there by path.
