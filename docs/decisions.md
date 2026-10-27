@@ -109,3 +109,16 @@ paid search data APIs.
 which is roughly what "People also ask" combines. Each run reports what every source found and
 which questions only one of them found, so a source that adds nothing gets cut. The alternatives
 wait until the score shows something missing.
+
+## 2026-10-27: The backend is Python, managed with uv
+
+**Chose:** the pipeline is written in Python. uv manages the Python version, the packages and the
+lock file.
+
+**Alternatives:** TypeScript end to end; pip with venv; Poetry.
+
+**Why:** the hard parts still ahead, pulling the main text out of pages and grouping questions,
+have their strongest libraries in Python (trafilatura, scikit-learn). Starting there costs less
+than switching halfway. The frontend only reads a results file, so a second language stays at
+arm's length. uv is one fast tool for everything Python needs; it is now owned by OpenAI, but it
+stays open source and the project file is standard, so leaving it is easy.

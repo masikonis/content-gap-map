@@ -4,22 +4,14 @@ The parts of the tool that are not decided yet, each with its options, pros and 
 decided when the build reaches it, using what the earlier parts showed. A decided part leaves this
 page, and its choice is in [decisions.md](decisions.md).
 
-Decided so far: where questions come from, and two constraints behind every option below (free
-software and data only; AI through Claude Code). Crawling is always polite: robots.txt, rate limits
-and an honest crawler name.
+Decided so far: where questions come from, the backend language and its tooling, and two
+constraints behind every option below (free software and data only; AI through Claude Code).
+Crawling is always polite: robots.txt, rate limits and an honest crawler name.
 
 Facts below came from web research on 2026-10-23. Some are not verified yet: a few model
 licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a subscription.
 
-## 1. Backend language
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. Python** | The best text extraction and clustering libraries only exist here (trafilatura, scikit-learn). Most similar tools are built this way. | A second language next to the TypeScript frontend, and two sets of data types to keep in sync. |
-| **B. TypeScript** (Node or Bun) | One language end to end. | Weaker extraction, thin clustering support (small single-author packages), so more code of our own. |
-| **C. Python for the pipeline, TypeScript for the viewer** | Each side gets its best tools. The viewer only reads a results file, so the link between them is small. | Two languages and two toolchains. |
-
-## 2. Crawler
+## 1. Crawler
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -31,7 +23,7 @@ licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a
 Ruled out:
 - **Firecrawl:** the self-hosted version needs several services, and AGPL clashes with MIT.
 
-## 3. JavaScript-heavy pages
+## 2. JavaScript-heavy pages
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -39,19 +31,19 @@ Ruled out:
 | **B. Playwright, only when a page returns too little text** | Automatic and repeatable. | A large install (a whole browser). |
 | **C. Chrome connector, by hand, for the odd page** | Nothing to install. Works on tricky pages. | Slow and manual. Not part of a repeatable run. |
 
-## 4. Pulling the main text out of a page
+## 3. Pulling the main text out of a page
 
 | Option | Pros | Cons |
 |---|---|---|
 | **A. trafilatura** | The reference tool. Multilingual. Keeps headings. Scores well on benchmarks. | Can drop content that isn't article-like, such as pricing grids and accordion FAQs. |
 | **B. Readability** | Well known (Firefox's reader view). | Built for articles, so worse on service and pricing pages. |
 | **C. Keep the whole page as Markdown** (markdownify) | Loses nothing. | Keeps menus, footers and other noise, so matching gets worse. |
-| **D. crawl4ai's built-in Markdown** | Comes free with 2D. | Ties extraction to that crawler. |
+| **D. crawl4ai's built-in Markdown** | Comes free with 1D. | Ties extraction to that crawler. |
 
 Add-on for any option: **extruct** reads FAQ and schema data, which gives exact question and
 answer pairs without AI.
 
-## 5. Splitting pages into passages
+## 4. Splitting pages into passages
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -59,7 +51,7 @@ answer pairs without AI.
 | **B. Fixed size** (for example, every 400 words) | Simplest. | Cuts through the middle of answers. |
 | **C. Semantic splitting** (AI decides where topics change) | Clean breaks in theory. | Studies show little gain over A, at more cost. |
 
-## 6. Finding candidate passages for each question
+## 5. Finding candidate passages for each question
 
 Claude can't read every passage for every question, so code has to shortlist the top 10 or so
 first.
@@ -71,7 +63,7 @@ first.
 | **C. A and B combined** | Usually finds more than either alone. | Two systems to tune. |
 | **D. A free embedding API tier** (Voyage, Gemini) | No local install. | A SaaS account with free-tier limits that can change. |
 
-## 7. Embedding model (only with 6A or 6C)
+## 6. Embedding model (only with 5A or 5C)
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -79,7 +71,7 @@ first.
 | **B. BGE-M3** | Solid, multilingual, MIT, no instruction needed. | A bit older and weaker. |
 | **C. EmbeddingGemma-300m** | Smallest and fastest. | Google's own licence terms, not a standard open-source licence. |
 
-## 8. Where vectors live (only with 6A or 6C)
+## 7. Where vectors live (only with 5A or 5C)
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -88,16 +80,16 @@ first.
 | **C. LanceDB** | Grows to large data. | Not needed at about 20,000 vectors. |
 | **D. pgvector** | The industry standard, good to learn. | Needs a Postgres server, for no gain at this size. |
 
-## 9. Grouping questions into topics
+## 8. Grouping questions into topics
 
 | Option | Pros | Cons |
 |---|---|---|
-| **A. Agglomerative clustering** (scikit-learn) | Same result every run. One threshold to tune. No need to pick the number of groups. | Needs embeddings (6A or 6C). |
+| **A. Agglomerative clustering** (scikit-learn) | Same result every run. One threshold to tune. No need to pick the number of groups. | Needs embeddings (5A or 5C). |
 | **B. HDBSCAN** | Finds groups of any shape. | Often throws a large share of short questions out as "noise". |
 | **C. BERTopic** | All in one: groups and names topics. | Hides its settings, and results change between runs. |
 | **D. Claude groups them directly** | No embeddings needed. Names come out in the same step. | Hard with thousands of questions at once, and less stable across runs. |
 
-## 10. How the pipeline calls Claude
+## 9. How the pipeline calls Claude
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -105,7 +97,7 @@ first.
 | **B. Claude Code runs the pipeline** (a skill that runs Python scripts and judges in between) | Natural in Claude Code. Can use subagents and the Chrome connector. | Less repeatable, harder to trace, and the line between code and AI blurs. |
 | **C. Claude Agent SDK** | A clean programming interface. | Normally needs a paid API key rather than a subscription (not verified). |
 
-## 11. Which Claude model per step
+## 10. Which Claude model per step
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -113,7 +105,7 @@ first.
 | **B. Sonnet everywhere** | One setting, strong quality. | Uses more of the limit. |
 | **C. Opus everywhere** | Best quality. | Uses the limit fastest, and is slower. |
 
-## 12. Storing runs and caching
+## 11. Storing runs and caching
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -122,7 +114,7 @@ first.
 | **C. DuckDB** | Great for analysis. | Not needed at this size. |
 | **D. Postgres** | Standard for a hosted service later. | A server to run, for nothing now. |
 
-## 13. Evals
+## 12. Evals
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -134,7 +126,7 @@ Ruled out:
 - **Ragas and DeepEval:** their scores are AI-graded and opaque, which doesn't fit tests against
   labels made by hand.
 
-## 14. Traces and cost reporting
+## 13. Traces and cost reporting
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -142,14 +134,14 @@ Ruled out:
 | **B. Langfuse, self-hosted** | A web UI. | Docker plus Postgres to run. |
 | **C. PostHog LLM analytics** | Dashboards with no setup. | Sends data off the machine. SaaS on a free tier. |
 
-## 15. App shape
+## 14. App shape
 
 | Option | Pros | Cons |
 |---|---|---|
 | **A. A command-line tool writes files, and a static React viewer reads them** | Fewest moving parts. The demo can be hosted free on GitHub Pages. | No starting runs or labelling from the browser. |
 | **B. A local API server plus a React app** | Start runs and label in the browser. | A server, two processes, more code. |
 
-## 16. Frontend libraries
+## 15. Frontend libraries
 
 | Area | Options |
 |---|---|
@@ -157,14 +149,6 @@ Ruled out:
 | **Charts** | (A) Observable Plot: small and SVG-based, also covers a scatter map of the topics. (B) Recharts: made for React, but heavier. (C) visx: very flexible, but a lot to build by hand. |
 | **Styling** | (A) CSS modules: plain CSS, nothing extra. (B) Tailwind: fast to write, but long class strings and a build plugin. |
 | **Routing** | (A) none: a few views switched in state. (B) TanStack Router: typed URLs, good for filters. (C) React Router: the most common. |
-
-## 17. Python tooling (only with 1A or 1C)
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. uv** | Fast, one tool for Python versions and packages. | Now owned by OpenAI. Stays open source, and the project file is standard, so it's easy to leave. |
-| **B. pip + venv** | Built in, no new tool. | Slower and more manual. |
-| **C. Poetry** | Mature. | Slower, and losing ground to uv. |
 
 ## Projects worth studying
 
