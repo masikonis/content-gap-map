@@ -117,26 +117,29 @@ it as a source, and it only covers searches where the site already appears. Abou
 their own work), and the tool filters those out anyway, so counting them would blur the number
 that matters.
 
-## 2026-10-27: The first collector uses autocomplete, Search Console and Claude web search
+## 2026-10-28: The collector uses autocomplete and Search Console; web search is optional
 
-**Chose:** three sources, combined:
+**Chose:** two sources run by default:
 - **Google autocomplete,** each seed expanded with question words and a to z. Plain code, close to
   what people type, about the same result every run.
 - **Search Console,** through its API, for sites we have access to. The best real demand data,
   including questions typed by AI assistants.
-- **Claude web search,** for questions people wrote out in full on forums, Q&A pages and articles,
-  each kept with its URL.
 
-**Alternatives:** Bing autocomplete; the Stack Exchange and Hacker News APIs; the WildChat dataset
-of real AI chats; Google driven through a browser; questions written by Claude and kept only if
-autocomplete confirms them. Ruled out: scraping "People also ask" (Google's robots.txt disallows
-it), Reddit (closed to new developers), Quora and review sites (their terms forbid scraping), and
-paid search data APIs.
+**Claude web search** stays as an optional step (`cgm websearch`), off by default: it finds
+questions people wrote out in full, each verified on its page.
 
-**Why:** together they cover what people search for and how they phrase it in their own words,
-which is roughly what "People also ask" combines. Each run reports what every source found and
-which questions only one of them found, so a source that adds nothing gets cut. The alternatives
-wait until the score shows something missing.
+**Alternatives:** web search on by default; cutting web search entirely; Bing autocomplete; the
+Stack Exchange and Hacker News APIs; the WildChat dataset of real AI chats; Google driven through
+a browser; questions written by Claude and kept only if autocomplete confirms them. Ruled out:
+scraping "People also ask" (Google's robots.txt disallows it), Reddit (closed to new developers),
+Quora and review sites (their terms forbid scraping), and paid search data APIs.
+
+**Why:** a source has to earn its place in the score. On the first scored test, autocomplete alone
+found 73% of the answer key's buyer questions. Web search, limited to pages that can be verified,
+added one more question while using about three times the rest of the run. Its questions are real
+but mostly not the ones Google shows, which the answer key can't credit, so it is kept for trying
+on other clients rather than cut. The other alternatives wait until the score shows something
+missing.
 
 ## 2026-10-27: The backend is Python, managed with uv
 

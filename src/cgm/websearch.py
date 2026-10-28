@@ -83,25 +83,40 @@ def on_page(question: str, raw_html: str) -> bool:
     return normalize(question) in page_text(raw_html)
 
 
-def public_host(host: str) -> bool:
-    """True only if every address the host resolves to is on the public internet."""
+def public_address(host: str) -> str | None:
+    """One address for the host, only if every address it resolves to is on the public internet."""
     try:
-        addresses = {info[4][0] for info in socket.getaddrinfo(host, None)}
+        addresses = sorted({info[4][0] for info in socket.getaddrinfo(host, None)})
     except (socket.gaierror, UnicodeError):
-        return False
-    return bool(addresses) and all(ipaddress.ip_address(a.split("%")[0]).is_global for a in addresses)
+        return None
+    if not addresses or not all(ipaddress.ip_address(a.split("%")[0]).is_global for a in addresses):
+        return None
+    return addresses[0]
+
+
+class NotPublic(Exception):
+    pass
 
 
 class Verifier:
-    """Fetches pages politely and safely: public hosts only, robots.txt respected at every
+    """Fetches pages politely and safely: public hosts only, each request sent to the address that
+    was checked (so a second lookup can't swap in a private one), robots.txt respected at every
     redirect hop, one request every PAUSE seconds, at most MAX_BYTES read per page."""
 
     def __init__(self, http: httpx.Client):
         self.http, self.robots = http, {}
 
     def read(self, url: str) -> tuple[int, str, str | None]:
+        parts = urlsplit(url)
+        address = public_address(parts.hostname or "")
+        if address is None:
+            raise NotPublic(url)
+        ip = f"[{address}]" if ":" in address else address
+        pinned = parts._replace(netloc=f"{ip}:{parts.port}" if parts.port else ip).geturl()
+        host = f"{parts.hostname}:{parts.port}" if parts.port else parts.hostname
+        extensions = {"sni_hostname": parts.hostname} if parts.scheme == "https" else {}
         time.sleep(PAUSE)
-        with self.http.stream("GET", url) as response:
+        with self.http.stream("GET", pinned, headers={"Host": host}, extensions=extensions) as response:
             body = b""
             for chunk in response.iter_bytes():
                 body += chunk
@@ -118,7 +133,7 @@ class Verifier:
             try:
                 status, text, _ = self.read(f"{host}/robots.txt")
                 rules.parse(text.splitlines() if status == 200 else [])
-            except httpx.HTTPError:
+            except (httpx.HTTPError, NotPublic):
                 rules.parse([])
             self.robots[host] = rules
         return self.robots[host].can_fetch(USER_AGENT, url)
@@ -129,11 +144,14 @@ class Verifier:
             parts = urlsplit(url)
             if parts.scheme not in ("http", "https") or not parts.hostname:
                 return None, "not a web address"
-            if not public_host(parts.hostname):
+            if public_address(parts.hostname) is None:
                 return None, "not a public address"
             if not self.allowed(url):
                 return None, "robots.txt forbids crawlers"
-            status, text, location = self.read(url)
+            try:
+                status, text, location = self.read(url)
+            except NotPublic:
+                return None, "not a public address"
             if status in (301, 302, 303, 307, 308) and location:
                 url = urljoin(url, location)
                 continue
@@ -165,7 +183,7 @@ def run(client: Client, run_folder: Path) -> None:
         print(f"{seed}: {len(answer['questions'])} questions", flush=True)
 
     verified = 0
-    with (httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=15.0) as http,
+    with (httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=15.0, trust_env=False) as http,
           open(run_folder / "websearch.csv", "w", newline="") as f):
         verifier = Verifier(http)
         writer = csv.writer(f)
