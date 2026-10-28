@@ -211,9 +211,10 @@ Agent SDK normally needs a paid API key.
 ## 2026-10-28: How milestone 1 is scored
 
 **Chose:**
-- **Who judges:** Claude (Opus) decides whether a collected item and an answer-key question are
+- **Who judges:** Claude (Sonnet) decides whether a collected item and an answer-key question are
   the same question.
-- **The rule:** they match if one answer would satisfy both. Same topic is not enough.
+- **The rule:** they match if one answer would satisfy both. Same topic is not enough, and neither
+  is a phrase whose answer would only cover the question along the way.
 - **What it compares:** each unique answer-key question against everything the collector found,
   across all seeds, 15 questions per call.
 - **Buyer tags:** each question is tagged once as a buyer question or not (Sonnet), and the tags
@@ -222,7 +223,7 @@ Agent SDK normally needs a paid API key.
   phrase. Plain code turns the number back into the phrase, and a number outside the list counts
   as a miss.
 - **Checks on the scorer:** the main judge runs twice, and the share of verdicts that flip is
-  reported. A second judge (Sonnet) runs once, and every question where the two judges disagree is
+  reported. A second judge (Opus) runs once, and every question where the two judges disagree is
   listed for a person to review. Once a person has reviewed a run, every pass is also scored
   against those reviewed verdicts.
 - **Output:** `score.csv` with every verdict, `disagreements.csv`, a summary (share of buyer
@@ -230,7 +231,7 @@ Agent SDK normally needs a paid API key.
   trace.
 
 **Alternatives:** embedding similarity with a threshold; word overlap in plain code; a "same
-topic" rule; checking each question only against its own seed's suggestions; Sonnet or Haiku as
+topic" rule; checking each question only against its own seed's suggestions; Opus or Haiku as
 the main judge; matches quoted as text; a plain-code shortlist of candidates before judging; a
 person checking a sample of verdicts without a second judge.
 
@@ -239,8 +240,14 @@ most paraphrases and embeddings would need labels we don't have to set a thresho
 keeps the score from being inflated by loose topic matches. A question often appears under one seed
 while its match was collected under another, so checking against everything avoids false misses.
 Stable verdicts are not the same as correct ones: the flip rate shows stability, and the second
-judge points a person at the verdicts most likely to be wrong, which keeps the review short. On the
-first reviewed run, Opus was right on 96% of verdicts and Sonnet on 83 to 89%: given thousands of
-phrases, Sonnet missed obvious matches and twice miscopied a phrase, which numbered phrases rule
-out. Opus uses more of a subscription's limit per call; a shortlist would cut that, but a shortlist
-that drops the right phrase causes misses no judge can fix, so it waits until the limit matters.
+judge points a person at the verdicts most likely to be wrong, which keeps the review short.
+Measured against a reviewed run: with phrases quoted as text, Sonnet was right on 83 to 89% of
+verdicts and Opus on 96%, because Sonnet missed obvious matches in long lists and miscopied
+phrases. Numbering the phrases brought Sonnet to 92% and Opus to 91 to 94%, and most of Opus's
+remaining errors were generous matches. Adding the "covers it along the way" rule left Sonnet at
+89 to 90% and Opus at 94%. Differences this small sit inside the 6% of verdicts that flip between
+passes, so on its own the scorer is about 90% accurate, and a score is only final once a person has
+reviewed the questions where the two judges disagree. With equal accuracy, Sonnet uses less than
+half the subscription limit, and a strict judge understates the score rather than inflating it. A
+shortlist before judging would cut usage further, but a shortlist that drops the right phrase
+causes misses no judge can fix, so it waits until the limit matters.

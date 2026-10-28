@@ -14,8 +14,8 @@ from pathlib import Path
 from cgm import claude
 from cgm.client import Client
 
-JUDGE = "opus"
-SECOND_JUDGE = "sonnet"
+JUDGE = "sonnet"
+SECOND_JUDGE = "opus"
 TAGGER = "sonnet"
 BATCH = 15
 
@@ -37,9 +37,10 @@ MATCH_SCHEMA = {
 MATCH_PROMPT = """Below are questions buyers ask and search phrases that people typed, both numbered.
 
 For each question, decide whether any search phrase asks the same thing. They match only if one
-answer would satisfy both. The same topic is not enough: "gutter cleaning tools" does not match
-"Is it worth paying for gutter cleaning?", but "gutter cleaning cost" matches "How much does
-gutter cleaning cost?".
+answer would satisfy both. The same topic is not enough: "piano lesson books" does not match
+"Are piano lessons worth it?", but "piano lessons cost" matches "How much do piano lessons cost?".
+A phrase whose answer would only cover the question along the way does not match either: "what
+are piano lessons" does not match "What does a first piano lesson include?".
 
 Return one result per question. If found, put the number of the single best matching phrase in
 "phrase". If not found, put 0. Keep "reason" under 15 words.
