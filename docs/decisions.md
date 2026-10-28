@@ -96,21 +96,26 @@ A public template is in `examples/client.example.toml`.
 nothing about a client can be published by accident. A separate repository would add a second
 place to keep in sync, and environment files suit secrets, not lists of sites.
 
-## 2026-10-27: Milestone 1 is proven against "People also ask" collected by hand
+## 2026-10-27: Milestone 1 is proven against a "People also ask" answer key
 
 **Chose:** milestone 1 ("real questions") counts as done when an automated collector finds the
-questions in an answer key: Google's "People also ask" questions for each seed, collected in a
-browser by a person. The score is the share of answer-key questions the collector finds, matched
-by meaning rather than exact words. The target is set after the first scored run.
+questions in an answer key: Google's "People also ask" questions for each seed. The key is
+collected once per test client in a real browser session, one search at a time, by Claude in
+Nerijus's Chrome, never by the tool itself. Questions that appear under several seeds count once.
+Each question is tagged as a buyer question or not, and the headline score is the share of buyer
+questions the collector finds, matched by meaning rather than exact words, with the share of all
+questions reported next to it. The target is set once the scorer itself has been checked.
 
 **Alternatives:** no answer key, judging the collector's output by reading it; the site's own
-Search Console searches as the answer key.
+Search Console searches as the answer key; scoring all questions alike.
 
 **Why:** "it works" needs a number, and every later milestone stands on this one. "People also
-ask" is the closest public view of what buyers ask, and it can't be collected automatically within
-Google's rules, so no source the collector uses can see it. That keeps the test independent.
-Search Console fails that test, because the collector uses it as a source, and it only covers
-searches where the site already appears.
+ask" is the closest public view of what buyers ask, and none of the collector's sources can see
+it, which keeps the test independent. Search Console fails that test, because the collector uses
+it as a source, and it only covers searches where the site already appears. About one in five
+"People also ask" questions are not from buyers (do-it-yourself tips, or other businesses pricing
+their own work), and the tool filters those out anyway, so counting them would blur the number
+that matters.
 
 ## 2026-10-27: The first collector uses autocomplete, Search Console and Claude web search
 
@@ -209,20 +214,26 @@ Agent SDK normally needs a paid API key.
 - **Who judges:** Claude (Sonnet) decides whether a collected item and an answer-key question are
   the same question.
 - **The rule:** they match if one answer would satisfy both. Same topic is not enough.
-- **Per call:** one seed at a time, with that seed's "People also ask" questions and all of its
-  collected suggestions.
+- **What it compares:** each unique answer-key question against everything the collector found,
+  across all seeds, 15 questions per call.
+- **Buyer tags:** each question is tagged once as a buyer question or not (Sonnet), and the tags
+  are saved beside the answer key so every later score uses the same ones.
 - **Proof:** every match quotes the matching suggestion, and plain code checks that the quote
   exists in the collected data. A match that fails the check counts as a miss.
-- **Output:** `score.csv` with one row per question (found, the matching suggestion, a short
-  reason), the share found overall and per seed, and the trace.
-- **Stability:** the scorer runs twice, and the share of verdicts that flip between passes is
-  reported with the score.
+- **Checks on the scorer:** the main judge runs twice, and the share of verdicts that flip is
+  reported. A second judge (Opus) runs once, and every question where the two judges disagree is
+  listed for a person to review.
+- **Output:** `score.csv` with every verdict, `disagreements.csv`, a summary (share of buyer
+  questions found, share of all questions found, flip rate, agreement between judges), and the
+  trace.
 
 **Alternatives:** embedding similarity with a threshold; word overlap in plain code; a "same
-topic" rule; one call holding every seed at once; Haiku as the judge.
+topic" rule; checking each question only against its own seed's suggestions; Haiku as the judge;
+a person checking a sample of verdicts without a second judge.
 
 **Why:** matching meaning is a judgment call, so it belongs to Claude; word overlap would miss
 most paraphrases and embeddings would need labels we don't have to set a threshold. The strict rule
-keeps the score from being inflated by loose topic matches. One seed per call keeps lists short
-enough to match reliably. The scorer is the measuring stick, so it gets the careful model, and the
-quote check and flip rate show how far its verdicts can be trusted.
+keeps the score from being inflated by loose topic matches. A question often appears under one seed
+while its match was collected under another, so checking against everything avoids false misses.
+Stable verdicts are not the same as correct ones: the flip rate shows stability, and the second
+judge points a person at the verdicts most likely to be wrong, which keeps the review short.

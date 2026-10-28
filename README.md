@@ -35,8 +35,9 @@ Success comes in milestones. Each one has to work reliably before the next one i
 5. **Gaps worth acting on.** A short list of missing answers that a person agrees are real and
    worth a page.
 
-Each milestone is checked against a fixed test set built by a person, and the scores, cost and run
-time are published here.
+Each milestone is checked against a fixed test set that the tool never sees while it runs, with a
+person reviewing the cases where the checks disagree. The scores, cost and run time are published
+here.
 
 ## Status
 
