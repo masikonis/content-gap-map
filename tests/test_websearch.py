@@ -13,3 +13,16 @@ def test_on_page_finds_a_question_split_by_markup():
 def test_on_page_ignores_scripts_and_missing_questions():
     page = "<script>var q = 'Can adults learn piano?';</script><p>Piano lessons near me</p>"
     assert not on_page("Can adults learn piano?", page)
+
+
+def test_on_page_ignores_unclosed_scripts_without_slowing_down():
+    page = "<script>" * 5000 + "<p>Can adults learn piano?</p>"
+    assert not on_page("Can adults learn piano?", page)
+
+
+def test_local_and_private_hosts_are_not_public():
+    from cgm.websearch import public_host
+    assert not public_host("localhost")
+    assert not public_host("127.0.0.1")
+    assert not public_host("192.168.1.1")
+    assert not public_host("169.254.169.254")

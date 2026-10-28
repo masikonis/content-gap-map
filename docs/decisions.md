@@ -259,9 +259,12 @@ causes misses no judge can fix, so it waits until the limit matters.
   what happens if, when and when not, risks and worries, what is included, comparisons, and hiring
   versus doing it yourself.
 - **Which pages count:** questions people asked in their own words on forums, Q&A sites, community
-  threads and comments. Businesses' own FAQ pages are excluded.
+  threads and comments, preferably from people in the client's country. Businesses' own FAQ pages
+  are excluded, and so are sites that forbid crawlers (such as Quora and Reddit), because their
+  questions can't be checked.
 - **Proof:** plain code fetches each URL politely (robots.txt respected, one request every 2
-  seconds, an honest crawler name) and checks that the question appears on the page. Questions it
+  seconds, an honest crawler name) and checks that the question appears on the page. It fetches
+  public addresses only, re-checks every redirect, and reads at most 2 MB per page. Questions it
   can't check are kept but marked unverified.
 - **Model and volume:** Sonnet, one call per seed, with only the web search and page reading
   tools allowed.
@@ -271,13 +274,17 @@ causes misses no judge can fix, so it waits until the limit matters.
   found by all sources together (verified questions only, and with unverified ones), by each
   source alone, and the questions only one source found.
 
-**Alternatives:** one open request per seed with no angles; any page including FAQ pages; trusting
+**Alternatives:** one open request per seed with no angles; any page including FAQ pages; keeping
+sites that forbid crawlers and counting their questions unverified in the headline; trusting
 Claude's URLs, or having Claude re-read the page to confirm; Haiku; several calls per seed; a
 separate run folder per source.
 
 **Why:** autocomplete already finds most cost questions, so the angles point the search at what it
 misses. FAQ pages hold questions someone already answers, so counting them would hide the gaps the
 tool is meant to find. A question checked on its page in plain code is proof; Claude's word for it
-is not. Some sites can't be checked, such as those whose robots.txt forbids crawlers, so those
-questions are reported apart rather than dropped. Reporting each source's own share and its
+is not. On the first run, more than half the questions came from Quora, whose robots.txt forbids
+crawlers, and many verified ones came from forums in another country, so the search now skips
+such sites and prefers the client's country. The URLs come from web content, so the checker
+refuses private and local addresses and caps what it reads. Questions that still can't be checked
+are reported apart rather than dropped. Reporting each source's own share and its
 unique finds is how a source shows it earns its place.

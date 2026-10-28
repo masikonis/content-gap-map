@@ -58,5 +58,7 @@ private/<client>/runs/<date-time>/     autocomplete.csv, responses/, websearch.c
 - Plain code for exact parts, Claude for judgment, and every Claude call goes through `claude.ask`.
 - Requests are polite: `USER_AGENT` and `PAUSE` in `autocomplete.py`, robots.txt for page fetches.
   A refusal is reported, never worked around.
+- URLs from Claude or the web are untrusted: page fetches go to public addresses only, redirects
+  are followed by hand and re-checked, and at most 2 MB is read (`Verifier` in `websearch.py`).
 - Any code check on a Claude answer (a phrase number, a quote on a page) turns a failed check
   into a miss, never a pass.

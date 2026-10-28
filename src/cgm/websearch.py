@@ -1,16 +1,18 @@
 """Find real questions people wrote online, with Claude web search, and verify each on its page.
 
-Claude searches once per seed and returns questions with the URL where each appeared. Plain code
-then fetches every URL politely and checks the question is on the page. Questions it can't check
-are kept and marked unverified, with the reason.
+Claude searches once per seed and returns questions with the URL where each appeared, skipping
+sites that forbid crawlers. Plain code then fetches every URL politely and checks the question is
+on the page. Questions it can't check are kept and marked unverified, with the reason.
 """
 
 import csv
-import html
+import ipaddress
 import re
+import socket
 import time
+from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
@@ -21,6 +23,8 @@ from cgm.client import Client
 
 MODEL = "sonnet"
 TOOLS = "WebSearch,WebFetch"
+MAX_BYTES = 2_000_000
+MAX_REDIRECTS = 5
 
 SCHEMA = {
     "type": "object",
@@ -41,8 +45,28 @@ already well covered elsewhere, so include only a few.
 
 Only include questions a person asked in their own words, on forums, Q&A sites, community threads
 or comments. Do not include questions from a business's own FAQ page, or questions written as
-headings in articles. Copy each question exactly as the person wrote it, and give the URL of the
-page where it appears. Search in {language} for {country}."""
+headings in articles. Skip sites that forbid crawlers, such as Quora, Reddit, Facebook and X:
+every question will be checked on its page by a polite crawler. Prefer questions from people in
+the country with code "{country}", written in the language with code "{language}". Copy each
+question exactly as the person wrote it, and give the URL of the page where it appears."""
+
+
+class _Text(HTMLParser):
+    """Collects a page's visible text, skipping scripts and styles. Linear in the page size."""
+
+    def __init__(self):
+        super().__init__()
+        self.parts, self.skip = [], 0
+
+    def handle_starttag(self, tag, attrs):
+        self.skip += tag in ("script", "style")
+
+    def handle_endtag(self, tag):
+        self.skip -= tag in ("script", "style") and self.skip > 0
+
+    def handle_data(self, data):
+        if not self.skip:
+            self.parts.append(data)
 
 
 def normalize(text: str) -> str:
@@ -50,23 +74,41 @@ def normalize(text: str) -> str:
 
 
 def page_text(raw_html: str) -> str:
-    raw_html = re.sub(r"(?is)<(script|style).*?</\1>", " ", raw_html)
-    return normalize(html.unescape(re.sub(r"(?s)<[^>]+>", " ", raw_html)))
+    parser = _Text()
+    parser.feed(raw_html)
+    return normalize(" ".join(parser.parts))
 
 
 def on_page(question: str, raw_html: str) -> bool:
     return normalize(question) in page_text(raw_html)
 
 
+def public_host(host: str) -> bool:
+    """True only if every address the host resolves to is on the public internet."""
+    try:
+        addresses = {info[4][0] for info in socket.getaddrinfo(host, None)}
+    except (socket.gaierror, UnicodeError):
+        return False
+    return bool(addresses) and all(ipaddress.ip_address(a.split("%")[0]).is_global for a in addresses)
+
+
 class Verifier:
-    """Fetches pages politely: robots.txt respected per host, one request every PAUSE seconds."""
+    """Fetches pages politely and safely: public hosts only, robots.txt respected at every
+    redirect hop, one request every PAUSE seconds, at most MAX_BYTES read per page."""
 
     def __init__(self, http: httpx.Client):
         self.http, self.robots = http, {}
 
-    def get(self, url: str) -> httpx.Response:
+    def read(self, url: str) -> tuple[int, str, str | None]:
         time.sleep(PAUSE)
-        return self.http.get(url)
+        with self.http.stream("GET", url) as response:
+            body = b""
+            for chunk in response.iter_bytes():
+                body += chunk
+                if len(body) >= MAX_BYTES:
+                    break
+            text = body[:MAX_BYTES].decode(response.encoding or "utf-8", errors="replace")
+            return response.status_code, text, response.headers.get("location")
 
     def allowed(self, url: str) -> bool:
         parts = urlsplit(url)
@@ -74,25 +116,40 @@ class Verifier:
         if host not in self.robots:
             rules = RobotFileParser()
             try:
-                response = self.get(f"{host}/robots.txt")
-                rules.parse(response.text.splitlines() if response.status_code == 200 else [])
+                status, text, _ = self.read(f"{host}/robots.txt")
+                rules.parse(text.splitlines() if status == 200 else [])
             except httpx.HTTPError:
                 rules.parse([])
             self.robots[host] = rules
         return self.robots[host].can_fetch(USER_AGENT, url)
 
+    def fetch(self, url: str) -> tuple[int | None, str]:
+        """Follows redirects by hand, re-checking each hop. Returns (status, text) or (None, reason)."""
+        for _ in range(MAX_REDIRECTS + 1):
+            parts = urlsplit(url)
+            if parts.scheme not in ("http", "https") or not parts.hostname:
+                return None, "not a web address"
+            if not public_host(parts.hostname):
+                return None, "not a public address"
+            if not self.allowed(url):
+                return None, "robots.txt forbids crawlers"
+            status, text, location = self.read(url)
+            if status in (301, 302, 303, 307, 308) and location:
+                url = urljoin(url, location)
+                continue
+            return status, text
+        return None, "too many redirects"
+
     def check(self, question: str, url: str) -> tuple[bool, str]:
-        if not url.startswith(("http://", "https://")):
-            return False, "not a web address"
-        if not self.allowed(url):
-            return False, "robots.txt forbids crawlers"
         try:
-            response = self.get(url)
+            status, text = self.fetch(url)
         except httpx.HTTPError as error:
             return False, f"fetch failed: {type(error).__name__}"
-        if response.status_code != 200:
-            return False, f"fetch failed: {response.status_code}"
-        if not on_page(question, response.text):
+        if status is None:
+            return False, text
+        if status != 200:
+            return False, f"fetch failed: {status}"
+        if not on_page(question, text):
             return False, "question not found on the page"
         return True, ""
 
@@ -108,7 +165,7 @@ def run(client: Client, run_folder: Path) -> None:
         print(f"{seed}: {len(answer['questions'])} questions", flush=True)
 
     verified = 0
-    with (httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=15.0, follow_redirects=True) as http,
+    with (httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=15.0) as http,
           open(run_folder / "websearch.csv", "w", newline="") as f):
         verifier = Verifier(http)
         writer = csv.writer(f)
