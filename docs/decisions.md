@@ -175,3 +175,14 @@ bad filter can't silently drop real questions. CSV matches the answer key and op
 single command keeps every step of the tool in one place. Two test calls showed that the country
 setting is only a hint: suggestions for other countries come back too, so location filtering
 belongs in the later filtering step.
+
+## 2026-10-28: httpx for requests, pytest for tests
+
+**Chose:** httpx for every HTTP request the tool makes, and pytest for tests. Tests use made-up
+data only and never call a live service.
+
+**Alternatives:** Python's built-in `urllib` and `unittest`, with no dependencies.
+
+**Why:** httpx gives clear timeouts and status handling, and the crawler will need it at rung 2,
+so one library serves the whole tool instead of being swapped in later. pytest is the standard
+and keeps tests short.

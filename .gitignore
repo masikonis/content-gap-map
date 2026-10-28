@@ -6,3 +6,8 @@
 
 # Client data, never committed
 private/
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/

@@ -1,0 +1,25 @@
+[project]
+name = "content-gap-map"
+version = "0.1.0"
+description = "Buyer questions your site misses."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+]
+
+[project.scripts]
+cgm = "cgm.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "cgm"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
