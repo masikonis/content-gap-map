@@ -122,3 +122,33 @@ have their strongest libraries in Python (trafilatura, scikit-learn). Starting t
 than switching halfway. The frontend only reads a results file, so a second language stays at
 arm's length. uv is one fast tool for everything Python needs; it is now owned by OpenAI, but it
 stays open source and the project file is standard, so leaving it is easy.
+
+## 2026-10-27: How the autocomplete collector works
+
+**Chose:**
+- **Format:** Google's "chrome" autocomplete format, which returns 15 suggestions per request,
+  each with a relevance score.
+- **Expansion:** each seed alone, with question words before and after it ("how much …",
+  "… cost", "… vs"), and with a to z after it. About 55 requests per seed. Results are not
+  expanded again.
+- **Pace and identity:** one request every 2 seconds, an honest crawler name with a link to this
+  repository, backing off when asked to slow down, and stopping with a "blocked" report rather
+  than working around a block.
+- **Raw collection:** every suggestion is saved. Filtering for questions, buyer intent and
+  location is a separate later step.
+- **Output:** one folder per run in the client's private folder, holding a CSV with one row per
+  suggestion (seed, query sent, suggestion, rank, relevance, time) and Google's raw replies.
+- **Running it:** one command, `uv run cgm autocomplete <client>`, which later steps join as
+  sub-commands.
+
+**Alternatives:** the "firefox" format (10 suggestions, no scores); the seed alone, or question
+words without a to z; expanding the best suggestions again; faster requests or a browser-like
+identity; filtering while collecting; JSON lines instead of CSV; a standalone script.
+
+**Why:** more suggestions per request means fewer requests. A to z expansion is the standard way
+to reach the long tail, and about 450 requests for 8 seeds is still small. Polite, honest
+requests are a lab rule, and a block is reported rather than hidden. Keeping the raw data means a
+bad filter can't silently drop real questions. CSV matches the answer key and opens anywhere. A
+single command keeps every step of the tool in one place. Two test calls showed that the country
+setting is only a hint: suggestions for other countries come back too, so location filtering
+belongs in the later filtering step.
