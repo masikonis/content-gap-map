@@ -11,7 +11,8 @@ Crawling is always polite: robots.txt, rate limits and an honest crawler name.
 Sites are read in rungs (see [decisions.md](decisions.md)), so not every part is needed at once.
 The first version, at rung 1 (sitemap), needs grouping (8), calling Claude (9, 10), storage (11),
 evals (12), traces (13), app shape (14) and the frontend (15). The crawler and JavaScript pages
-(1, 2) join at rung 2. Text extraction, splitting and passage search (3 to 7) join at rung 3.
+(1, 2) join at rung 2. Text extraction, splitting and passage search (3 to 5) join at rung 3. The
+embedding model and vector storage (6, 7) join at rung 3, or at rung 1 if grouping uses embeddings.
 
 Facts below came from web research on 2026-10-23. Some are not verified yet: a few model
 licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a subscription.
