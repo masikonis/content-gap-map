@@ -4,13 +4,14 @@ The parts of the tool that are not decided yet, each with its options, pros and 
 decided when the build reaches it, using what the earlier parts showed. A decided part leaves this
 page, and its choice is in [decisions.md](decisions.md).
 
-Decided so far: where questions come from, the backend language and its tooling, and two
-constraints behind every option below (free software and data only; AI through Claude Code).
-Crawling is always polite: robots.txt, rate limits and an honest crawler name.
+Decided so far: where questions come from, the backend language and its tooling, how the
+pipeline calls Claude, traces, and two constraints behind every option below (free software and
+data only; AI through Claude Code). Crawling is always polite: robots.txt, rate limits and an
+honest crawler name.
 
 Sites are read in rungs (see [decisions.md](decisions.md)), so not every part is needed at once.
-The first version, at rung 1 (sitemap), needs grouping (8), calling Claude (9, 10), storage (11),
-evals (12), traces (13), app shape (14) and the frontend (15). The crawler and JavaScript pages
+The first version, at rung 1 (sitemap), needs grouping (8), the Claude model per step (9),
+storage (10), evals (11), app shape (12) and the frontend (13). The crawler and JavaScript pages
 (1, 2) join at rung 2. Text extraction, splitting and passage search (3 to 5) join at rung 3. The
 embedding model and vector storage (6, 7) join at rung 3, or at rung 1 if grouping uses embeddings.
 
@@ -95,15 +96,7 @@ first.
 | **C. BERTopic** | All in one: groups and names topics. | Hides its settings, and results change between runs. |
 | **D. Claude groups them directly** | No embeddings needed. Names come out in the same step. | Hard with thousands of questions at once, and less stable across runs. |
 
-## 9. How the pipeline calls Claude
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. Python runs the pipeline and calls `claude -p`** for each judging batch | Code stays in charge. `--json-schema` fixes the reply shape. `--output-format json` returns tokens and time, which feed the traces. | Each call starts a new Claude Code process, which is a bit slow. |
-| **B. Claude Code runs the pipeline** (a skill that runs Python scripts and judges in between) | Natural in Claude Code. Can use subagents and the Chrome connector. | Less repeatable, harder to trace, and the line between code and AI blurs. |
-| **C. Claude Agent SDK** | A clean programming interface. | Normally needs a paid API key rather than a subscription (not verified). |
-
-## 10. Which Claude model per step
+## 9. Which Claude model per step
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -111,7 +104,7 @@ first.
 | **B. Sonnet everywhere** | One setting, strong quality. | Uses more of the limit. |
 | **C. Opus everywhere** | Best quality. | Uses the limit fastest, and is slower. |
 
-## 11. Storing runs and caching
+## 10. Storing runs and caching
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -120,7 +113,7 @@ first.
 | **C. DuckDB** | Great for analysis. | Not needed at this size. |
 | **D. Postgres** | Standard for a hosted service later. | A server to run, for nothing now. |
 
-## 12. Evals
+## 11. Evals
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -132,22 +125,14 @@ Ruled out:
 - **Ragas and DeepEval:** their scores are AI-graded and opaque, which doesn't fit tests against
   labels made by hand.
 
-## 13. Traces and cost reporting
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. One trace file per run** (each line is one AI call: prompt, reply, tokens, time) | Free, offline, can be committed as a public example. | No dashboard. |
-| **B. Langfuse, self-hosted** | A web UI. | Docker plus Postgres to run. |
-| **C. PostHog LLM analytics** | Dashboards with no setup. | Sends data off the machine. SaaS on a free tier. |
-
-## 14. App shape
+## 12. App shape
 
 | Option | Pros | Cons |
 |---|---|---|
 | **A. A command-line tool writes files, and a static React viewer reads them** | Fewest moving parts. The demo can be hosted free on GitHub Pages. | No starting runs or labelling from the browser. |
 | **B. A local API server plus a React app** | Start runs and label in the browser. | A server, two processes, more code. |
 
-## 15. Frontend libraries
+## 13. Frontend libraries
 
 | Area | Options |
 |---|---|

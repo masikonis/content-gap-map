@@ -186,3 +186,43 @@ data only and never call a live service.
 **Why:** httpx gives clear timeouts and status handling, and the crawler will need it at rung 2,
 so one library serves the whole tool instead of being swapped in later. pytest is the standard
 and keeps tests short.
+
+## 2026-10-28: Python calls Claude Code in a trimmed mode, and every call is traced
+
+**Chose:** Python runs the pipeline and calls `claude -p` for each judgment, with a fixed JSON
+reply shape. Each call turns off Claude Code's tools, MCP servers and settings and uses a short
+system prompt of our own. Every call adds one line to the run's `trace.jsonl`: the prompt, the
+reply, tokens, time and Claude Code's list-price estimate.
+
+**Alternatives:** Claude Code running the pipeline as a skill; the Claude Agent SDK; a dashboard
+for traces (Langfuse self-hosted, PostHog).
+
+**Why:** code stays in charge and every reply is checked against its shape. A test call carried
+about 46,000 tokens of Claude Code's own setup before the question; the trimmed mode cut it to
+1,270 and halved the time, which keeps a subscription's limits out of the way. A plain trace file
+is free, works offline, and is what the README's cost and speed numbers are computed from. The
+Agent SDK normally needs a paid API key.
+
+## 2026-10-28: How milestone 1 is scored
+
+**Chose:**
+- **Who judges:** Claude (Sonnet) decides whether a collected item and an answer-key question are
+  the same question.
+- **The rule:** they match if one answer would satisfy both. Same topic is not enough.
+- **Per call:** one seed at a time, with that seed's "People also ask" questions and all of its
+  collected suggestions.
+- **Proof:** every match quotes the matching suggestion, and plain code checks that the quote
+  exists in the collected data. A match that fails the check counts as a miss.
+- **Output:** `score.csv` with one row per question (found, the matching suggestion, a short
+  reason), the share found overall and per seed, and the trace.
+- **Stability:** the scorer runs twice, and the share of verdicts that flip between passes is
+  reported with the score.
+
+**Alternatives:** embedding similarity with a threshold; word overlap in plain code; a "same
+topic" rule; one call holding every seed at once; Haiku as the judge.
+
+**Why:** matching meaning is a judgment call, so it belongs to Claude; word overlap would miss
+most paraphrases and embeddings would need labels we don't have to set a threshold. The strict rule
+keeps the score from being inflated by loose topic matches. One seed per call keeps lists short
+enough to match reliably. The scorer is the measuring stick, so it gets the careful model, and the
+quote check and flip rate show how far its verdicts can be trusted.
