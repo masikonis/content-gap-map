@@ -14,8 +14,9 @@ from pathlib import Path
 from cgm import claude
 from cgm.client import Client
 
-JUDGE = "sonnet"
-SECOND_JUDGE = "opus"
+JUDGE = "opus"
+SECOND_JUDGE = "sonnet"
+TAGGER = "sonnet"
 BATCH = 15
 
 MATCH_SCHEMA = {
@@ -25,23 +26,23 @@ MATCH_SCHEMA = {
         "properties": {
             "id": {"type": "integer"},
             "found": {"type": "boolean"},
-            "suggestion": {"type": "string"},
+            "phrase": {"type": "integer"},
             "reason": {"type": "string"},
         },
-        "required": ["id", "found", "suggestion", "reason"],
+        "required": ["id", "found", "phrase", "reason"],
     }}},
     "required": ["results"],
 }
 
-MATCH_PROMPT = """Below are questions buyers ask (numbered) and search phrases that people typed.
+MATCH_PROMPT = """Below are questions buyers ask and search phrases that people typed, both numbered.
 
 For each question, decide whether any search phrase asks the same thing. They match only if one
 answer would satisfy both. The same topic is not enough: "gutter cleaning tools" does not match
 "Is it worth paying for gutter cleaning?", but "gutter cleaning cost" matches "How much does
 gutter cleaning cost?".
 
-Return one result per question. If found, copy the single best matching phrase exactly as written
-into "suggestion". If not found, leave "suggestion" empty. Keep "reason" under 15 words.
+Return one result per question. If found, put the number of the single best matching phrase in
+"phrase". If not found, put 0. Keep "reason" under 15 words.
 
 Questions:
 {questions}
@@ -110,7 +111,7 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
         answer = claude.ask(TAG_PROMPT.format(site_type=client.site_type,
                                               services=", ".join(client.seeds),
                                               questions=numbered(group)),
-                            TAG_SCHEMA, JUDGE, trace, "tag buyer questions")
+                            TAG_SCHEMA, TAGGER, trace, "tag buyer questions")
         by_id = {r["id"]: r for r in answer["results"]}
         for i, q in enumerate(group, 1):
             r = by_id.get(i, {"buyer": True, "reason": "no tag returned, kept as buyer"})
@@ -123,25 +124,26 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
     return tags
 
 
-def check(results: list[dict], questions: list[str], phrases: set[str]) -> list[dict]:
-    """Keep one verdict per question; a match whose quote isn't in the collected phrases is a miss."""
+def check(results: list[dict], questions: list[str], phrases: list[str]) -> list[dict]:
+    """Keep one verdict per question; a match pointing at a phrase number that doesn't exist is a miss."""
     by_id = {r["id"]: r for r in results}
     checked = []
     for i, question in enumerate(questions, 1):
-        r = by_id.get(i, {"found": False, "suggestion": "", "reason": "no verdict returned"})
-        found = r["found"] and r["suggestion"] in phrases
-        reason = r["reason"] if found or not r["found"] else "quoted phrase not in the collected data"
+        r = by_id.get(i, {"found": False, "phrase": 0, "reason": "no verdict returned"})
+        valid = 1 <= r["phrase"] <= len(phrases)
+        found = r["found"] and valid
+        reason = r["reason"] if found or not r["found"] else "phrase number not in the list"
         checked.append({"question": question, "found": found,
-                        "suggestion": r["suggestion"] if found else "", "reason": reason})
+                        "suggestion": phrases[r["phrase"] - 1] if found else "", "reason": reason})
     return checked
 
 
 def judge(questions: list[str], phrases: list[str], model: str, trace: Path, label: str) -> list[dict]:
-    known, rows = set(phrases), []
+    rows = []
     for n, group in enumerate(batches(questions), 1):
-        prompt = MATCH_PROMPT.format(questions=numbered(group), phrases="\n".join(phrases))
+        prompt = MATCH_PROMPT.format(questions=numbered(group), phrases=numbered(phrases))
         answer = claude.ask(prompt, MATCH_SCHEMA, model, trace, f"{label}, batch {n}")
-        rows += check(answer["results"], group, known)
+        rows += check(answer["results"], group, phrases)
     print(f"{label}: {sum(r['found'] for r in rows)}/{len(rows)} found", flush=True)
     return rows
 
@@ -175,12 +177,22 @@ def run(client: Client, run_folder: Path) -> None:
                                  a["suggestion"], a["reason"], b["found"], b["suggestion"], b["reason"]])
 
     summary = summarize(passes, tags)
+    reviewed = run_folder / "reviewed.csv"
+    if reviewed.exists():
+        truth = {r["question"]: r["found"] == "True" for r in csv.DictReader(open(reviewed))}
+        summary["accuracy_against_reviewed"] = {name: accuracy(rows, truth)
+                                                for name, rows in passes.items()}
     (run_folder / "score-summary.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))
 
 
 def share(rows: list[dict]) -> float | None:
     return round(sum(r["found"] for r in rows) / len(rows), 3) if rows else None
+
+
+def accuracy(rows: list[dict], truth: dict[str, bool]) -> float:
+    known = [r for r in rows if r["question"] in truth]
+    return round(sum(r["found"] == truth[r["question"]] for r in known) / len(known), 3)
 
 
 def agreement(a: list[dict], b: list[dict]) -> float:

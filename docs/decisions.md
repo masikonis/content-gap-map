@@ -211,29 +211,36 @@ Agent SDK normally needs a paid API key.
 ## 2026-10-28: How milestone 1 is scored
 
 **Chose:**
-- **Who judges:** Claude (Sonnet) decides whether a collected item and an answer-key question are
+- **Who judges:** Claude (Opus) decides whether a collected item and an answer-key question are
   the same question.
 - **The rule:** they match if one answer would satisfy both. Same topic is not enough.
 - **What it compares:** each unique answer-key question against everything the collector found,
   across all seeds, 15 questions per call.
 - **Buyer tags:** each question is tagged once as a buyer question or not (Sonnet), and the tags
   are saved beside the answer key so every later score uses the same ones.
-- **Proof:** every match quotes the matching suggestion, and plain code checks that the quote
-  exists in the collected data. A match that fails the check counts as a miss.
+- **Proof:** collected phrases are numbered, and every match names the number of the matching
+  phrase. Plain code turns the number back into the phrase, and a number outside the list counts
+  as a miss.
 - **Checks on the scorer:** the main judge runs twice, and the share of verdicts that flip is
-  reported. A second judge (Opus) runs once, and every question where the two judges disagree is
-  listed for a person to review.
+  reported. A second judge (Sonnet) runs once, and every question where the two judges disagree is
+  listed for a person to review. Once a person has reviewed a run, every pass is also scored
+  against those reviewed verdicts.
 - **Output:** `score.csv` with every verdict, `disagreements.csv`, a summary (share of buyer
   questions found, share of all questions found, flip rate, agreement between judges), and the
   trace.
 
 **Alternatives:** embedding similarity with a threshold; word overlap in plain code; a "same
-topic" rule; checking each question only against its own seed's suggestions; Haiku as the judge;
-a person checking a sample of verdicts without a second judge.
+topic" rule; checking each question only against its own seed's suggestions; Sonnet or Haiku as
+the main judge; matches quoted as text; a plain-code shortlist of candidates before judging; a
+person checking a sample of verdicts without a second judge.
 
 **Why:** matching meaning is a judgment call, so it belongs to Claude; word overlap would miss
 most paraphrases and embeddings would need labels we don't have to set a threshold. The strict rule
 keeps the score from being inflated by loose topic matches. A question often appears under one seed
 while its match was collected under another, so checking against everything avoids false misses.
 Stable verdicts are not the same as correct ones: the flip rate shows stability, and the second
-judge points a person at the verdicts most likely to be wrong, which keeps the review short.
+judge points a person at the verdicts most likely to be wrong, which keeps the review short. On the
+first reviewed run, Opus was right on 96% of verdicts and Sonnet on 83 to 89%: given thousands of
+phrases, Sonnet missed obvious matches and twice miscopied a phrase, which numbered phrases rule
+out. Opus uses more of a subscription's limit per call; a shortlist would cut that, but a shortlist
+that drops the right phrase causes misses no judge can fix, so it waits until the limit matters.

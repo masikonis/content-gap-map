@@ -1,25 +1,25 @@
 import csv
 
 from cgm.client import Client, Site
-from cgm.score import check, load_answer_key, summarize
+from cgm.score import accuracy, check, load_answer_key, summarize
 
 QUESTIONS = ["How much do piano lessons cost?", "Can adults learn piano?"]
-PHRASES = {"piano lessons cost", "piano lessons near me"}
+PHRASES = ["piano lessons cost", "piano lessons near me"]
 
 
-def test_check_keeps_a_match_whose_quote_exists():
-    results = [{"id": 1, "found": True, "suggestion": "piano lessons cost", "reason": "same cost question"},
-               {"id": 2, "found": False, "suggestion": "", "reason": "no adult phrase"}]
+def test_check_turns_a_phrase_number_into_the_phrase():
+    results = [{"id": 1, "found": True, "phrase": 1, "reason": "same cost question"},
+               {"id": 2, "found": False, "phrase": 0, "reason": "no adult phrase"}]
     rows = check(results, QUESTIONS, PHRASES)
     assert [r["found"] for r in rows] == [True, False]
     assert rows[0]["suggestion"] == "piano lessons cost"
 
 
-def test_check_turns_an_invented_quote_into_a_miss():
-    results = [{"id": 1, "found": True, "suggestion": "piano lesson prices", "reason": "same"}]
+def test_check_turns_a_phrase_number_outside_the_list_into_a_miss():
+    results = [{"id": 1, "found": True, "phrase": 3, "reason": "same"}]
     rows = check(results, QUESTIONS, PHRASES)
     assert rows[0]["found"] is False
-    assert rows[0]["reason"] == "quoted phrase not in the collected data"
+    assert rows[0]["reason"] == "phrase number not in the list"
     assert rows[1]["reason"] == "no verdict returned"
 
 
@@ -49,3 +49,9 @@ def test_summarize_reports_buyer_share_flips_and_agreement():
     assert summary["flip_rate"] == 0.25
     assert summary["judge_agreement"] == 0.75
     assert summary["disagreements"] == 1
+
+
+def test_accuracy_counts_only_reviewed_questions():
+    rows = [{"question": "a", "found": True}, {"question": "b", "found": False},
+            {"question": "c", "found": True}]
+    assert accuracy(rows, {"a": True, "b": True}) == 0.5
