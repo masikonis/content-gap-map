@@ -8,6 +8,11 @@ Decided so far: where questions come from, the backend language and its tooling,
 constraints behind every option below (free software and data only; AI through Claude Code).
 Crawling is always polite: robots.txt, rate limits and an honest crawler name.
 
+Sites are read in rungs (see [decisions.md](decisions.md)), so not every part is needed at once.
+The first version, at rung 1 (sitemap), needs grouping (8), calling Claude (9, 10), storage (11),
+evals (12), traces (13), app shape (14) and the frontend (15). The crawler and JavaScript pages
+(1, 2) join at rung 2. Text extraction, splitting and passage search (3 to 7) join at rung 3.
+
 Facts below came from web research on 2026-10-23. Some are not verified yet: a few model
 licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a subscription.
 

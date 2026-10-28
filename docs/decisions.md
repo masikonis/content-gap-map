@@ -5,14 +5,37 @@ decision changes, its entry is rewritten, so this page always shows the current 
 
 ## 2026-10-23: "Answered" has three levels
 
-**Chose:** each question gets one of three verdicts per site: answered, partly answered, or not
-answered, with the URL and passage as evidence.
+**Chose:** when the tool reads a site's full passages, each question gets one of three verdicts
+per site: answered, partly answered, or not answered, with the URL and passage as evidence. At
+lighter reading depths the verdict is topic-level (see the next entry).
 
 **Alternatives:** yes or no; a score from 0 to 100.
 
 **Why:** "partly" is the most useful case, because it means improving an existing page rather
 than writing a new one. Yes or no hides it. A 0 to 100 score looks precise, but a person can't
 label it consistently, so we couldn't test it.
+
+## 2026-10-28: Sites are read in rungs, starting with the sitemap
+
+**Chose:** the same pipeline reads a site at one of three depths, and each depth earns a stronger
+verdict:
+
+| Rung | Reads | Verdict |
+|---|---|---|
+| 1. Sitemap | Page addresses | Has a page on this topic, or no page |
+| 2. Page outlines | Each page's title, description and headings | The same, more reliable |
+| 3. Passages | The page text | Answered, partly answered or not, with the quote |
+
+The first version runs at rung 1 only. Every report states the rung it ran at. Matching topics to
+page addresses is a judgment step, done by Claude.
+
+**Alternatives:** read full passages from the start; a sitemap-only tool that claims "answered".
+
+**Why:** a sitemap gives a working report within seconds per site, and "no page on this topic" is
+already a reliable, useful gap. Each later rung adds to the same report instead of replacing it.
+A page address can show that a site covers a topic but not that it answers a question, so the
+stronger verdict waits for the rung that can prove it. Sites with unreadable addresses (such as
+`/?p=123`) need rung 2 straight away.
 
 ## 2026-10-23: Site types are profiles, with a generic fallback
 

@@ -8,8 +8,16 @@ it does, and you lose that buyer before you know they existed.
 
 Content Gap Map takes your site and your top competitors, collects the real questions buyers ask,
 and shows which questions you answer, which only your competitors answer, and which nobody answers
-well. Every verdict links to the page and passage behind it, so you can check the work. You end
-with a short list of the pages worth writing next, based on real questions instead of guesses.
+well. Every verdict links to the evidence behind it, so you can check the work. You end with a
+short list of the pages worth writing next, based on real questions instead of guesses.
+
+It reads each site at one of three depths, and the report says which one it used:
+
+1. **Sitemap:** which topics each site has a page for, and which it has none for. Fast, and
+   enough to find the clearest gaps.
+2. **Page outlines:** the same, from each page's title and headings, so it's more reliable.
+3. **Passages:** whether each page actually answers each question, partly answers it or misses
+   it, with the passage quoted.
 
 It is built for B2B software, service businesses and publishers, and can run on other sites too.
 English first; other languages are accepted as input but stay untested until they have their
@@ -21,10 +29,9 @@ Success comes in milestones. Each one has to work reliably before the next one i
 
 1. **Real questions.** Collect the questions real buyers ask, not ones a machine made up.
 2. **Clear topics.** Group the questions that mean the same thing, the way a person would.
-3. **The right content.** Collect the content from your site and your competitors' sites that
-   could answer a buyer, and leave out the rest.
-4. **Honest verdicts.** Decide whether each site answers each question, partly answers it or
-   misses it, and show the proof.
+3. **The right content.** Read your site and your competitors' sites at each depth, starting with
+   the sitemap, and keep what could answer a buyer.
+4. **Honest verdicts.** Give each site the verdict its depth can prove, and show the proof.
 5. **Gaps worth acting on.** A short list of missing answers that a person agrees are real and
    worth a page.
 
