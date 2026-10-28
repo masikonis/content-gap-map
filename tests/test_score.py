@@ -7,19 +7,19 @@ QUESTIONS = ["How much do piano lessons cost?", "Can adults learn piano?"]
 PHRASES = ["piano lessons cost", "piano lessons near me"]
 
 
-def test_check_turns_a_phrase_number_into_the_phrase():
-    results = [{"id": 1, "found": True, "phrase": 1, "reason": "same cost question"},
-               {"id": 2, "found": False, "phrase": 0, "reason": "no adult phrase"}]
+def test_check_turns_phrase_numbers_into_phrases():
+    results = [{"id": 1, "found": True, "phrases": [1, 2], "reason": "same cost question"},
+               {"id": 2, "found": False, "phrases": [], "reason": "no adult phrase"}]
     rows = check(results, QUESTIONS, PHRASES)
     assert [r["found"] for r in rows] == [True, False]
-    assert rows[0]["suggestion"] == "piano lessons cost"
+    assert rows[0]["matches"] == ["piano lessons cost", "piano lessons near me"]
 
 
 def test_check_turns_a_phrase_number_outside_the_list_into_a_miss():
-    results = [{"id": 1, "found": True, "phrase": 3, "reason": "same"}]
+    results = [{"id": 1, "found": True, "phrases": [3], "reason": "same"}]
     rows = check(results, QUESTIONS, PHRASES)
     assert rows[0]["found"] is False
-    assert rows[0]["reason"] == "phrase number not in the list"
+    assert rows[0]["reason"] == "phrase numbers not in the list"
     assert rows[1]["reason"] == "no verdict returned"
 
 
@@ -37,18 +37,33 @@ def test_answer_key_counts_a_question_once_across_seeds(tmp_path):
 
 def test_summarize_reports_buyer_share_flips_and_agreement():
     def rows(*found):
-        return [{"question": q, "found": f} for q, f in zip("abcd", found)]
+        return [{"question": q, "found": f, "matches": ["p"] if f else []} for q, f in zip("abcd", found)]
     passes = {"judge pass 1": rows(True, False, True, True),
               "judge pass 2": rows(True, True, True, True),
               "second judge": rows(True, False, False, True)}
     tags = {"a": {"buyer": True}, "b": {"buyer": True}, "c": {"buyer": False}, "d": {"buyer": True}}
-    summary = summarize(passes, tags)
+    summary = summarize(passes, tags, {"p": {"autocomplete"}})
     assert summary["buyer_questions"] == 3
     assert summary["share_found_buyer"] == 0.667
     assert summary["share_found_all"] == 0.75
     assert summary["flip_rate"] == 0.25
     assert summary["judge_agreement"] == 0.75
     assert summary["disagreements"] == 1
+
+
+def test_summarize_credits_each_source_and_keeps_unverified_apart():
+    first = [{"question": "a", "found": True, "matches": ["typed"]},
+             {"question": "b", "found": True, "matches": ["written"]},
+             {"question": "c", "found": True, "matches": ["unchecked"]}]
+    passes = {"judge pass 1": first, "judge pass 2": first, "second judge": first}
+    tags = {q: {"buyer": True} for q in "abc"}
+    sources = {"typed": {"autocomplete"}, "written": {"websearch"}, "unchecked": {"websearch-unverified"}}
+    summary = summarize(passes, tags, sources)
+    assert summary["share_found_buyer"] == 0.667
+    assert summary["share_found_buyer_by_source"]["all sources, with unverified"] == 1.0
+    assert summary["share_found_buyer_by_source"]["autocomplete"] == 0.333
+    assert summary["buyer_questions_only_one_source_found"] == {
+        "autocomplete": ["a"], "websearch, with unverified": ["b", "c"]}
 
 
 def test_accuracy_counts_only_reviewed_questions():

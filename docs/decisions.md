@@ -251,3 +251,33 @@ reviewed the questions where the two judges disagree. With equal accuracy, Sonne
 half the subscription limit, and a strict judge understates the score rather than inflating it. A
 shortlist before judging would cut usage further, but a shortlist that drops the right phrase
 causes misses no judge can fix, so it waits until the limit matters.
+
+## 2026-10-28: How the Claude web search source works
+
+**Chose:**
+- **What to find:** about 25 questions per seed, spread across the angles autocomplete misses: why,
+  what happens if, when and when not, risks and worries, what is included, comparisons, and hiring
+  versus doing it yourself.
+- **Which pages count:** questions people asked in their own words on forums, Q&A sites, community
+  threads and comments. Businesses' own FAQ pages are excluded.
+- **Proof:** plain code fetches each URL politely (robots.txt respected, one request every 2
+  seconds, an honest crawler name) and checks that the question appears on the page. Questions it
+  can't check are kept but marked unverified.
+- **Model and volume:** Sonnet, one call per seed, with only the web search and page reading
+  tools allowed.
+- **Output:** `websearch.csv` in the same run folder as the other sources, with the question, its
+  URL, and whether it was verified, plus a trace line per call.
+- **Scoring:** the scorer reads every source in the run and reports the share of buyer questions
+  found by all sources together (verified questions only, and with unverified ones), by each
+  source alone, and the questions only one source found.
+
+**Alternatives:** one open request per seed with no angles; any page including FAQ pages; trusting
+Claude's URLs, or having Claude re-read the page to confirm; Haiku; several calls per seed; a
+separate run folder per source.
+
+**Why:** autocomplete already finds most cost questions, so the angles point the search at what it
+misses. FAQ pages hold questions someone already answers, so counting them would hide the gaps the
+tool is meant to find. A question checked on its page in plain code is proof; Claude's word for it
+is not. Some sites can't be checked, such as those whose robots.txt forbids crawlers, so those
+questions are reported apart rather than dropped. Reporting each source's own share and its
+unique finds is how a source shows it earns its place.

@@ -1,7 +1,7 @@
 """Score a collector run against the answer key ("People also ask").
 
-Each unique answer-key question is checked against everything the collector found, across all
-seeds. Questions are tagged once as buyer questions or not, and the headline score counts buyer
+Each unique answer-key question is checked against everything every source found in the run,
+across all seeds, and each match is credited to the sources that found it. Questions are tagged once as buyer questions or not, and the headline score counts buyer
 questions only. Two passes by the main judge measure how often verdicts flip, and one pass by a
 second judge shows where the two disagree, for a person to review.
 """
@@ -26,30 +26,34 @@ MATCH_SCHEMA = {
         "properties": {
             "id": {"type": "integer"},
             "found": {"type": "boolean"},
-            "phrase": {"type": "integer"},
+            "phrases": {"type": "array", "items": {"type": "integer"}},
             "reason": {"type": "string"},
         },
-        "required": ["id", "found", "phrase", "reason"],
+        "required": ["id", "found", "phrases", "reason"],
     }}},
     "required": ["results"],
 }
 
-MATCH_PROMPT = """Below are questions buyers ask and search phrases that people typed, both numbered.
+MATCH_PROMPT = """Below are questions buyers ask, and phrases people typed or wrote, both numbered.
 
-For each question, decide whether any search phrase asks the same thing. They match only if one
+For each question, decide whether any phrase asks the same thing. They match only if one
 answer would satisfy both. The same topic is not enough: "piano lesson books" does not match
 "Are piano lessons worth it?", but "piano lessons cost" matches "How much do piano lessons cost?".
 A phrase whose answer would only cover the question along the way does not match either: "what
 are piano lessons" does not match "What does a first piano lesson include?".
 
-Return one result per question. If found, put the number of the single best matching phrase in
-"phrase". If not found, put 0. Keep "reason" under 15 words.
+Return one result per question. If found, list the numbers of every matching phrase in "phrases".
+If not found, leave "phrases" empty. Keep "reason" under 15 words.
 
 Questions:
 {questions}
 
-Search phrases:
+Phrases:
 {phrases}"""
+
+SOURCES = {"autocomplete": "autocomplete", "websearch": "websearch",
+           "websearch-unverified": "websearch, unverified"}
+VERIFIED = {"autocomplete", "websearch"}
 
 TAG_SCHEMA = {
     "type": "object",
@@ -87,8 +91,15 @@ def load_answer_key(client: Client) -> dict[str, list[str]]:
     return dict(key)
 
 
-def load_collected(run: Path) -> list[str]:
-    return sorted({row["suggestion"] for row in csv.DictReader(open(run / "autocomplete.csv"))})
+def load_collected(run: Path) -> tuple[list[str], dict[str, set[str]]]:
+    """Every phrase any source found in the run, and which sources found it."""
+    sources = defaultdict(set)
+    for row in csv.DictReader(open(run / "autocomplete.csv")):
+        sources[row["suggestion"]].add("autocomplete")
+    if (run / "websearch.csv").exists():
+        for row in csv.DictReader(open(run / "websearch.csv")):
+            sources[row["question"]].add("websearch" if row["verified"] == "True" else "websearch-unverified")
+    return sorted(sources), dict(sources)
 
 
 def numbered(items: list[str]) -> str:
@@ -126,17 +137,21 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
 
 
 def check(results: list[dict], questions: list[str], phrases: list[str]) -> list[dict]:
-    """Keep one verdict per question; a match pointing at a phrase number that doesn't exist is a miss."""
+    """Keep one verdict per question; phrase numbers outside the list are dropped, and a match
+    left with no valid phrase is a miss."""
     by_id = {r["id"]: r for r in results}
     checked = []
     for i, question in enumerate(questions, 1):
-        r = by_id.get(i, {"found": False, "phrase": 0, "reason": "no verdict returned"})
-        valid = 1 <= r["phrase"] <= len(phrases)
-        found = r["found"] and valid
-        reason = r["reason"] if found or not r["found"] else "phrase number not in the list"
-        checked.append({"question": question, "found": found,
-                        "suggestion": phrases[r["phrase"] - 1] if found else "", "reason": reason})
+        r = by_id.get(i, {"found": False, "phrases": [], "reason": "no verdict returned"})
+        matches = [phrases[n - 1] for n in r["phrases"] if 1 <= n <= len(phrases)] if r["found"] else []
+        found = bool(matches)
+        reason = r["reason"] if found or not r["found"] else "phrase numbers not in the list"
+        checked.append({"question": question, "found": found, "matches": matches, "reason": reason})
     return checked
+
+
+def found_by(row: dict, sources: dict[str, set[str]], wanted: set[str]) -> bool:
+    return any(sources[m] & wanted for m in row["matches"])
 
 
 def judge(questions: list[str], phrases: list[str], model: str, trace: Path, label: str) -> list[dict]:
@@ -150,7 +165,8 @@ def judge(questions: list[str], phrases: list[str], model: str, trace: Path, lab
 
 
 def run(client: Client, run_folder: Path) -> None:
-    key, phrases = load_answer_key(client), load_collected(run_folder)
+    key = load_answer_key(client)
+    phrases, sources = load_collected(run_folder)
     questions = list(key)
     trace = run_folder / "trace.jsonl"
     tags = tag_buyers(client, questions, trace)
@@ -161,11 +177,13 @@ def run(client: Client, run_folder: Path) -> None:
 
     with open(run_folder / "score.csv", "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["pass", "question", "seeds", "buyer", "found", "suggestion", "reason"])
+        writer.writerow(["pass", "question", "seeds", "buyer", "found", "sources", "matches", "reason"])
         for name, rows in passes.items():
             for r in rows:
+                found_in = sorted({SOURCES[s] for m in r["matches"] for s in sources[m]})
                 writer.writerow([name, r["question"], "; ".join(key[r["question"]]),
-                                 tags[r["question"]]["buyer"], r["found"], r["suggestion"], r["reason"]])
+                                 tags[r["question"]]["buyer"], r["found"], "; ".join(found_in),
+                                 " | ".join(r["matches"]), r["reason"]])
 
     first, second = passes["judge pass 1"], passes["second judge"]
     with open(run_folder / "disagreements.csv", "w", newline="") as f:
@@ -175,20 +193,23 @@ def run(client: Client, run_folder: Path) -> None:
         for a, b in zip(first, second):
             if a["found"] != b["found"]:
                 writer.writerow([a["question"], tags[a["question"]]["buyer"], a["found"],
-                                 a["suggestion"], a["reason"], b["found"], b["suggestion"], b["reason"]])
+                                 " | ".join(a["matches"]), a["reason"], b["found"],
+                                 " | ".join(b["matches"]), b["reason"]])
 
-    summary = summarize(passes, tags)
+    summary = summarize(passes, tags, sources)
     reviewed = run_folder / "reviewed.csv"
     if reviewed.exists():
+        # Reviewed verdicts cover autocomplete only, so judges are compared on those matches.
         truth = {r["question"]: r["found"] == "True" for r in csv.DictReader(open(reviewed))}
-        summary["accuracy_against_reviewed"] = {name: accuracy(rows, truth)
-                                                for name, rows in passes.items()}
+        summary["accuracy_against_reviewed"] = {
+            name: accuracy([{**r, "found": found_by(r, sources, {"autocomplete"})} for r in rows], truth)
+            for name, rows in passes.items()}
     (run_folder / "score-summary.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))
 
 
-def share(rows: list[dict]) -> float | None:
-    return round(sum(r["found"] for r in rows) / len(rows), 3) if rows else None
+def share(rows: list[dict], test=lambda r: r["found"]) -> float | None:
+    return round(sum(map(test, rows)) / len(rows), 3) if rows else None
 
 
 def accuracy(rows: list[dict], truth: dict[str, bool]) -> float:
@@ -200,14 +221,26 @@ def agreement(a: list[dict], b: list[dict]) -> float:
     return round(sum(x["found"] == y["found"] for x, y in zip(a, b)) / len(a), 3)
 
 
-def summarize(passes: dict[str, list[dict]], tags: dict[str, dict]) -> dict:
+def summarize(passes: dict[str, list[dict]], tags: dict[str, dict],
+              sources: dict[str, set[str]]) -> dict:
     first = passes["judge pass 1"]
     buyers = [r for r in first if tags[r["question"]]["buyer"]]
+    by = {label: lambda r, w=wanted: found_by(r, sources, w)
+          for label, wanted in [("all sources", VERIFIED),
+                                ("all sources, with unverified", set(SOURCES)),
+                                ("autocomplete", {"autocomplete"}),
+                                ("websearch", {"websearch"}),
+                                ("websearch, with unverified", {"websearch", "websearch-unverified"})]}
+    only = {label: [r["question"] for r in buyers if by[label](r) and not by[other](r)]
+            for label, other in [("autocomplete", "websearch, with unverified"),
+                                 ("websearch, with unverified", "autocomplete")]}
     return {
         "questions": len(first),
         "buyer_questions": len(buyers),
-        "share_found_buyer": share(buyers),
-        "share_found_all": share(first),
+        "share_found_buyer": share(buyers, by["all sources"]),
+        "share_found_all": share(first, by["all sources"]),
+        "share_found_buyer_by_source": {label: share(buyers, test) for label, test in by.items()},
+        "buyer_questions_only_one_source_found": only,
         "flip_rate": round(1 - agreement(first, passes["judge pass 2"]), 3),
         "judge_agreement": agreement(first, passes["second judge"]),
         "disagreements": sum(a["found"] != b["found"] for a, b in zip(first, passes["second judge"])),

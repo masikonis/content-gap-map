@@ -1,7 +1,8 @@
 """Ask Claude Code for one structured answer, and trace the call.
 
-Calls run `claude -p` with tools, MCP servers and settings turned off, so each call carries a few
-hundred tokens of setup instead of tens of thousands. Every call appends one line to trace.jsonl.
+Calls run `claude -p` with MCP servers and settings turned off and only the tools a step asks for,
+so each call carries a few hundred tokens of setup instead of tens of thousands. Every call appends
+one line to trace.jsonl.
 """
 
 import json
@@ -12,11 +13,14 @@ from pathlib import Path
 SYSTEM = "You are a careful analyst. Answer only in the requested JSON format."
 
 
-def ask(prompt: str, schema: dict, model: str, trace: Path, label: str) -> dict:
+def ask(prompt: str, schema: dict, model: str, trace: Path, label: str, tools: str = "") -> dict:
+    """`tools` is a comma-separated list such as "WebSearch,WebFetch"; empty means none."""
     command = ["claude", "-p", prompt, "--model", model, "--output-format", "json",
                "--json-schema", json.dumps(schema), "--system-prompt", SYSTEM,
-               "--tools", "", "--strict-mcp-config", "--setting-sources", "",
+               "--tools", tools, "--strict-mcp-config", "--setting-sources", "",
                "--no-session-persistence"]
+    if tools:
+        command += ["--allowedTools", tools]
     done = subprocess.run(command, capture_output=True, text=True, timeout=900)
     if done.returncode != 0:
         raise RuntimeError(f"claude failed for {label}: {done.stderr.strip() or done.stdout[:300]}")

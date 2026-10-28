@@ -41,9 +41,23 @@ here.
 
 ## Status
 
-Early. Nothing to run yet. It is built in public, one step at a time. The choices made so far and
-the reasons for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with
-their options, are in [docs/architecture.md](docs/architecture.md).
+Early, working on milestone 1. Question collection (Google autocomplete and Claude web search) and
+its scorer are built; grouping, site reading and the report are not. It is built in public, one
+step at a time. The choices made so far and the reasons for them are in
+[docs/decisions.md](docs/decisions.md); the parts still open, with their options, are in
+[docs/architecture.md](docs/architecture.md).
+
+## Run it
+
+You need [uv](https://docs.astral.sh/uv/) and [Claude Code](https://claude.com/claude-code).
+Copy `examples/client.example.toml` to `private/<name>/client.toml` and fill it in. The
+`private/` folder is never committed.
+
+```
+uv run cgm autocomplete <name>   # collect autocomplete suggestions into a new run
+uv run cgm websearch <name>      # add questions people wrote online, checked on their pages
+uv run cgm score <name>          # score the run against an answer key in private/<name>/answer-key/
+```
 
 ## License
 
