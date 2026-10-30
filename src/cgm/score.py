@@ -51,9 +51,9 @@ Questions:
 Phrases:
 {phrases}"""
 
-SOURCES = {"autocomplete": "autocomplete", "websearch": "websearch",
+SOURCES = {"autocomplete": "autocomplete", "searchconsole": "searchconsole", "websearch": "websearch",
            "websearch-unverified": "websearch, unverified"}
-VERIFIED = {"autocomplete", "websearch"}
+VERIFIED = {"autocomplete", "searchconsole", "websearch"}
 
 TAG_SCHEMA = {
     "type": "object",
@@ -96,6 +96,9 @@ def load_collected(run: Path) -> tuple[list[str], dict[str, set[str]]]:
     sources = defaultdict(set)
     for row in csv.DictReader(open(run / "autocomplete.csv")):
         sources[row["suggestion"]].add("autocomplete")
+    if (run / "searchconsole.csv").exists():
+        for row in csv.DictReader(open(run / "searchconsole.csv")):
+            sources[row["query"]].add("searchconsole")
     if (run / "websearch.csv").exists():
         for row in csv.DictReader(open(run / "websearch.csv")):
             sources[row["question"]].add("websearch" if row["verified"] == "True" else "websearch-unverified")
@@ -229,11 +232,14 @@ def summarize(passes: dict[str, list[dict]], tags: dict[str, dict],
           for label, wanted in [("all sources", VERIFIED),
                                 ("all sources, with unverified", set(SOURCES)),
                                 ("autocomplete", {"autocomplete"}),
+                                ("searchconsole", {"searchconsole"}),
                                 ("websearch", {"websearch"}),
                                 ("websearch, with unverified", {"websearch", "websearch-unverified"})]}
-    only = {label: [r["question"] for r in buyers if by[label](r) and not by[other](r)]
-            for label, other in [("autocomplete", "websearch, with unverified"),
-                                 ("websearch, with unverified", "autocomplete")]}
+    single = {"autocomplete": {"autocomplete"}, "searchconsole": {"searchconsole"},
+              "websearch, with unverified": {"websearch", "websearch-unverified"}}
+    only = {label: [r["question"] for r in buyers if found_by(r, sources, mine)
+                    and not found_by(r, sources, set(SOURCES) - mine)]
+            for label, mine in single.items()}
     return {
         "questions": len(first),
         "buyer_questions": len(buyers),

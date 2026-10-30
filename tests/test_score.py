@@ -63,7 +63,7 @@ def test_summarize_credits_each_source_and_keeps_unverified_apart():
     assert summary["share_found_buyer_by_source"]["all sources, with unverified"] == 1.0
     assert summary["share_found_buyer_by_source"]["autocomplete"] == 0.333
     assert summary["buyer_questions_only_one_source_found"] == {
-        "autocomplete": ["a"], "websearch, with unverified": ["b", "c"]}
+        "autocomplete": ["a"], "searchconsole": [], "websearch, with unverified": ["b", "c"]}
 
 
 def test_accuracy_counts_only_reviewed_questions():

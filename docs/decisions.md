@@ -125,13 +125,18 @@ too little room for the scorer's own error of about 10%.
 **Chose:** two sources run by default:
 - **Google autocomplete,** each seed expanded with question words and a to z. Plain code, close to
   what people type, about the same result every run.
-- **Search Console,** through its API, for sites we have access to. The best real demand data,
-  including questions typed by AI assistants.
+- **Search Console,** for the client's own site only (competitors' data is never available). The
+  best real demand data, including questions typed by AI assistants. It comes from Search
+  Console's own CSV export, 12 months, one export per service narrowed to question- and
+  cost-shaped searches so each stays under the export's 1,000-query cap; `cgm searchconsole`
+  merges the exports into a run.
 
 **Claude web search** stays as an optional step (`cgm websearch`), off by default: it finds
 questions people wrote out in full, each verified on its page.
 
-**Alternatives:** web search on by default; cutting web search entirely; Bing autocomplete; the
+**Alternatives:** the Search Console API (needs a Google Cloud login setup, more than an internal
+tool is worth; the export is a few clicks); one export of every query (hits the 1,000 cap and cuts
+off the rare searches); web search on by default; cutting web search entirely; Bing autocomplete; the
 Stack Exchange and Hacker News APIs; the WildChat dataset of real AI chats; Google driven through
 a browser; questions written by Claude and kept only if autocomplete confirms them. Ruled out:
 scraping "People also ask" (Google's robots.txt disallows it), Reddit (closed to new developers),
