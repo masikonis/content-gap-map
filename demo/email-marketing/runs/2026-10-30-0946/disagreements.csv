@@ -1,4 +1,3 @@
 question,buyer,sonnet found,sonnet match,sonnet reason,opus found,opus match,opus reason
-What is the easiest way to create a newsletter?,True,False,,No phrase asks about the easiest way or easiest newsletter creation.,True,easiest email marketing platform to use | easiest email marketing software,Asking for the easiest email platform is close to asking for the easiest newsletter tool.
-What are five examples of automation?,False,True,email automation examples | email automations examples,Email automation examples phrases match request for examples.,False,,Question is about automation in general; the phrases cover only email.
-What are the three types of emails?,False,False,,No phrase asks the three types of emails.,True,types of email categories,Phrase asks what the general categories of email are.
+What is the easiest way to create a newsletter?,True,True,what is the best program to create a newsletter | what software to use for newsletter | which software is best for creating a newsletter | software for creating newsletter,Phrases ask which software/program to use to create a newsletter.,False,,No phrase asks for the easiest way to create a newsletter.
+What are the three types of emails?,False,False,,No phrase asks the three main email types generally.,True,types of email categories,Types of email categories asks the same.

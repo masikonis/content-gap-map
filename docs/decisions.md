@@ -261,32 +261,32 @@ the main judge; matches quoted as text; every phrase in every call; a shortlist 
 sharing the most words with each question; a person checking a sample of verdicts without a
 second judge.
 
-**Why:** matching meaning is a judgment call, so it belongs to Claude; word overlap would miss
-most paraphrases and embeddings would need labels we don't have to set a threshold. The strict rule
-keeps the score from being inflated by loose topic matches. A question often appears under one seed
-while its match was collected under another, so checking against everything avoids false misses.
-Stable verdicts are not the same as correct ones: the flip rate shows stability, and the second
-judge points a person at the verdicts most likely to be wrong, which keeps the review short.
-The seed list alone keys each seed on its rarest word, and for seeds like "email marketing
-software" that word is generic ("software"), so right phrases were dropped before judging: the
-first public demo lost two matches this way. Adding the 100 closest phrases per question fixes it:
-measured against both reviewed sets, the shortlist then kept every confirmed match (56 of 56 and
-26 of 26) with lists only slightly longer. Using the seeds' two rarest words also kept them all but
-doubled the lists; dropping the shortlist did too, at the cost of long lists the judges handle worse.
-Measured against a reviewed run: with phrases quoted as text, Sonnet was right on 83 to 89% of
-verdicts and Opus on 96%, because Sonnet missed obvious matches in long lists and miscopied
-phrases. Numbering the phrases brought Sonnet to 92% and Opus to 91 to 94%, and most of Opus's
-remaining errors were generous matches. Adding the "covers it along the way" rule left Sonnet at
-89 to 90% and Opus at 94%. Differences this small sit inside the 6% of verdicts that flip between
-passes, so on its own the scorer is about 90% accurate, and a score is only final once a person has
-reviewed the questions where the two judges disagree. With equal accuracy, Sonnet uses less than
-half the subscription limit, and a strict judge understates the score rather than inflating it. A
-judge also misses more as lists grow: adding a second source took each call from about 3,600
-phrases to 5,100, and accuracy fell to 90 to 92%. A shortlist fixes that, but one that drops the
-right phrase causes a miss no judge can fix, so each was tested against the reviewed matches: the
-top 150 phrases by shared words kept only 46 of 56, because hundreds of near-identical phrases
-crowd out the right one and synonyms share no words, while the seed-word shortlist kept 55 of 56
-and cut lists to about 1,300 phrases.
+**Why:** matching meaning is a judgment call, so it belongs to Claude; word overlap would miss most
+paraphrases and embeddings would need labels we don't have to set a threshold. The strict rule keeps
+the score from being inflated by loose topic matches. A question often appears under one seed while
+its match was collected under another, so checking against everything avoids false misses. Stable
+verdicts are not the same as correct ones: the flip rate shows stability, and the second judge
+points a person at the verdicts most likely to be wrong, which keeps the review short. The seed list
+alone keys each seed on its rarest word, and for seeds like "email marketing software" that word is
+generic ("software"), so right phrases were dropped before judging: the first public demo lost two
+matches this way. Adding the 100 closest phrases per question fixes it: measured against both
+reviewed sets, the shortlist then kept every confirmed match (56 of 56 and 26 of 26) with lists only
+slightly longer, and still does after a plural-matching bug was fixed. Using the seeds' two rarest
+words also kept them all but doubled the lists; dropping the shortlist did too, at the cost of long
+lists the judges handle worse. Measured against a reviewed run: with phrases quoted as text, Sonnet
+was right on 83 to 89% of verdicts and Opus on 96%, because Sonnet missed obvious matches in long
+lists and miscopied phrases. Numbering the phrases brought Sonnet to 92% and Opus to 91 to 94%, and
+most of Opus's remaining errors were generous matches. Adding the "covers it along the way" rule
+left Sonnet at 89 to 90% and Opus at 94%. Differences this small sit inside the 6% of verdicts that
+flip between passes, so on its own the scorer is about 90% accurate, and a score is only final once
+a person has reviewed the questions where the two judges disagree. With equal accuracy, Sonnet uses
+less than half the subscription limit, and a strict judge understates the score rather than
+inflating it. A judge also misses more as lists grow: adding a second source took each call from
+about 3,600 phrases to 5,100, and accuracy fell to 90 to 92%. A shortlist fixes that, but one that
+drops the right phrase causes a miss no judge can fix, so each was tested against the reviewed
+matches: the top 150 phrases by shared words kept only 46 of 56, because hundreds of near-identical
+phrases crowd out the right one and synonyms share no words, while the seed-word shortlist kept 55
+of 56 and cut lists to about 1,300 phrases.
 
 ## 2026-10-28: How the Claude web search source works
 

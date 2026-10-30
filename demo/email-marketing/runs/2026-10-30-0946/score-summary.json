@@ -1,36 +1,44 @@
 {
   "questions": 57,
   "buyer_questions": 34,
-  "share_found_buyer": 0.794,
+  "share_found_buyer": 0.824,
   "share_found_all": 0.544,
   "share_found_buyer_by_source": {
-    "all sources": 0.794,
+    "all sources": 0.824,
     "all sources, with unverified": 0.794,
     "all sources, with predicted": 0.794,
-    "autocomplete": 0.794,
+    "autocomplete": 0.824,
     "searchconsole": 0.0,
     "searchconsole, AI searches": 0.0,
     "websearch": 0.0,
     "websearch, with unverified": 0.0,
-    "predicted": 0.206
+    "predicted": 0.059
   },
   "buyer_questions_only_one_source_found": {
     "autocomplete": [
       "Which email marketing software is best?",
       "Is email marketing still worth it in 2026?",
       "What is the easiest email marketing platform?",
+      "What is a good replacement for Mailchimp?",
       "Is email marketing declining?",
       "What is the best email platform in 2026?",
+      "Is there a better option than Mailchimp?",
       "Does Microsoft have a newsletter tool?",
+      "What is the best free newsletter platform?",
       "What is the best software to use to create a newsletter?",
+      "What is the best free email newsletter platform?",
+      "What is the easiest way to create a newsletter?",
       "How do you automate an email?",
       "Which tool is commonly used for email automation?",
+      "What is automation in email?",
       "Is there a free email automation tool?",
       "What is the best email automation service?",
       "How do I automate emails?",
+      "What is a transactional email?",
       "Which email provider is best for transactional emails?",
       "Can you give me an example of a transactional email?",
       "Do transactional emails need to unsubscribe?",
+      "What is the difference between transactional emails and marketing emails?",
       "Which transactional email service is free?",
       "Are transactional emails subject to can spam?",
       "What qualifies as a transactional email?",
@@ -42,12 +50,12 @@
     "websearch, with unverified": [],
     "predicted": []
   },
-  "flip_rate": 0.053,
-  "judge_agreement": 0.947,
-  "disagreements": 3,
+  "flip_rate": 0.0,
+  "judge_agreement": 0.965,
+  "disagreements": 2,
   "accuracy_against_reviewed": {
     "judge pass 1": 0.912,
-    "judge pass 2": 0.877,
-    "second judge": 0.895
+    "judge pass 2": 0.912,
+    "second judge": 0.912
   }
 }
