@@ -5,15 +5,17 @@ from collections import Counter
 
 
 def stem(word: str) -> str:
-    """A light English stem, so "prices" meets "price" and "cleaning" meets "clean"."""
+    """A light English stem, so "prices", "price" and "pricing" meet, as do "cleaning" and "clean"."""
     for suffix in ("ing", "ed"):
         if word.endswith(suffix) and len(word) - len(suffix) >= 3:
-            return word[:-len(suffix)]
-    if word.endswith("es") and word[:-2].endswith(("s", "x", "z", "ch", "sh")) and len(word) >= 5:
-        return word[:-2]
-    if word.endswith("s") and not word.endswith("ss") and len(word) >= 4:
-        return word[:-1]
-    return word
+            word = word[:-len(suffix)]
+            break
+    else:
+        if word.endswith("es") and word[:-2].endswith(("s", "x", "z", "ch", "sh")) and len(word) >= 5:
+            word = word[:-2]
+        elif word.endswith("s") and not word.endswith("ss") and len(word) >= 4:
+            word = word[:-1]
+    return word[:-1] if word.endswith("e") and len(word) > 3 else word
 
 
 def words(text: str) -> set[str]:

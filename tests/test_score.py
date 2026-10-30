@@ -90,7 +90,7 @@ def test_shortlists_keep_seed_phrases_plus_close_wordings():
 
 def test_stem_joins_singular_and_plural():
     from cgm.text import stem
-    assert stem("prices") == stem("price") == "price"
+    assert stem("prices") == stem("price") == stem("pricing")
     assert stem("alternatives") == stem("alternative")
     assert stem("boxes") == "box" and stem("class") == "class" and stem("cleaning") == "clean"
 

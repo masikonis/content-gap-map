@@ -438,30 +438,45 @@ reviewing in a browser is needed often.
 
 **Chose:**
 - **What gets grouped:** real collected phrases only (no predicted questions), after Claude
-  (Sonnet) tags each one as a buyer phrase or not under the site's profile rule. Only buyer phrases
-  are grouped.
-- **How:** plain code first merges near-duplicates (the same words in any order or form). Claude
-  then groups the rest into topics, one seed's phrases at a time, under the same rule as scoring:
-  a topic is one question a buyer wants answered, so one answer would satisfy every phrase in it.
-  Each topic gets a short plain name. A final pass merges topics that mean the same thing across
-  seeds. Code checks every answer: a phrase assigned twice keeps its first topic, and a phrase left
-  out becomes a topic of its own and is counted.
+  (Sonnet) tags each one as a buyer phrase or not under the site's profile rule. Phrases in another
+  language, logins, downloads, phrases with a dollar amount and far-away places are left out as
+  junk. Only buyer phrases are grouped.
+- **How:** plain code first merges rewordings: the same words in any order or form, ignoring years
+  and the words reddit, quora and youtube. Claude then groups the rest into topics under the same
+  rule as scoring: a topic is one question a buyer wants answered, so one answer would satisfy
+  every phrase in it. Up to 1,000 phrases go in one call, so a question is never split across
+  calls; a longer list is split by its nearest seed. Each topic is named as a question ending in
+  "?". The businesses compared get their own topics only when a phrase asks about that business;
+  other vendors go into the general question.
+- **Merge pass, always:** a second call sees every topic with its phrases, joins topics that ask
+  the same question under a new name, and folds topics about other single vendors into the general
+  question. It also catches the phrases the first call left out, which code keeps as their own
+  topics and counts.
+- **Checks in code:** a phrase assigned twice keeps its first topic; each topic joins at most one
+  merge; a name that is not a question is sent back to be renamed; a last call lists topic pairs
+  that may still be duplicates, reported and not acted on.
 - **The test:** in a reviewed run, phrases the judges matched to the same answer-key question
-  should land in the same topic. The score is the share of those pairs kept together. Pairs matched
-  to different questions are reported too, as a rough check against topics that lump things
-  together, since two different questions can still share a topic.
+  should share a topic. The score is the share of those pairs kept together, overall and averaged
+  per question so big questions don't carry it, next to the same shares for a random grouping of
+  the same sizes. Pairs matched to different questions are reported too, but random grouping
+  already keeps almost all of them apart, so that share says little.
 
-**Alternatives:** grouping everything collected; Claude alone without the duplicate merge; an
-embedding model with clustering code, which would need an AI model running on the local machine.
+**Alternatives:** grouping everything collected; Claude alone without the code merge; grouping one
+seed at a time, which split the same question across seeds and needed a merge that lumped
+unrelated topics together; a merge pass only for long lists; an embedding model with clustering
+code, which would need an AI model running on the local machine.
 
 **Why:** the report should only show topics buyers care about, and shorter, cleaner lists group
 better. Merging exact rewordings is a job for code; deciding what means the same is a job for
 Claude. Using the scoring rule as the topic rule keeps milestones 1 and 2 consistent, and the pair
-test reuses data a review already checked, so it needs no new labelling.
+test reuses data a review already checked, so it needs no new labelling. The random baseline shows
+whether a score means anything. Claude Fable reviewed the topics twice; the one-pass grouping, the
+always-on merge, question names, the vendor rule and the baseline came from those reviews.
 
-First results: on the public demo, 863 buyer phrases became 194 topics; 77% of same-question pairs
-landed together and 98% of different-question pairs were kept apart. On a private services client
-with ten times the long tail, 96% and 88%, but with 1,116 topics, most of them a single phrase.
-Known weak spots: some over-splitting ("best newsletter software" versus "best software for
-creating a newsletter"), a few foreign-language phrases tagged as buyer phrases, and a long tail of
-one-phrase topics that the report will need to fold away. No target is set for milestone 2 yet.
+Result on the public demo: 837 buyer phrases, 761 after merging rewordings, 131 topics (136
+before the merge pass), 33 of them a single phrase. 91% of same-question pairs share a topic (88%
+per question), against 2% for random grouping. 12 topic pairs are flagged as possible duplicates.
+Known weak spots: "which tools exist" and "which tool is best" are still separate topics, buyer
+tagging varies slightly between runs (820 and 837 buyer phrases on the same input), and no person
+has checked the topics. Earlier private runs used older code and have not been redone. No target
+is set for milestone 2 yet.

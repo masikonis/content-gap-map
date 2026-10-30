@@ -1,21 +1,31 @@
 {
   "real_phrases": 1473,
-  "buyer_phrases": 863,
-  "after_merging_rewordings": 819,
-  "topics": 194,
+  "buyer_phrases": 837,
+  "after_merging_rewordings": 761,
+  "topics": 131,
+  "topics_before_merge": 136,
   "largest_topics": [
-    55,
-    35,
+    46,
+    42,
+    40,
     31,
-    26,
-    25
+    29
   ],
-  "single_phrase_topics": 76,
-  "left_out_by_claude": 8,
+  "single_phrase_topics": 33,
+  "left_out_by_claude": 6,
+  "names_fixed": 2,
+  "names_not_questions": 0,
+  "possible_duplicate_topic_pairs": 12,
   "pair_test": {
-    "same_question_pairs": 911,
-    "share_together": 0.774,
-    "different_question_pairs": 16350,
-    "share_apart": 0.983
+    "questions": 25,
+    "same_question_pairs": 890,
+    "share_together": 0.908,
+    "share_together_per_question": 0.875,
+    "share_apart": 0.997,
+    "random_baseline": {
+      "share_together": 0.02,
+      "share_together_per_question": 0.018,
+      "share_apart": 0.982
+    }
   }
 }
