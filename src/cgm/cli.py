@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from cgm import autocomplete, predicted, score, searchconsole, websearch
+from cgm import autocomplete, predicted, score, searchconsole, topics, websearch
 from cgm.client import load_client
 
 
@@ -17,7 +17,8 @@ def main() -> None:
     for name, help_text in [("searchconsole", "import Search Console exports into a run"),
                             ("websearch", "find questions people wrote online, and verify them"),
                             ("predicted", "predict questions buyers ask AI assistants (never counted as demand)"),
-                            ("score", "score a run against the answer key")]:
+                            ("score", "score a run against the answer key"),
+                            ("topics", "group a run's buyer phrases into topics")]:
         step = steps.add_parser(name, help=help_text)
         step.add_argument("client", help="client folder under private/, or a path such as demo/email-marketing")
         step.add_argument("--run", help="run folder name (default: the latest run)")
@@ -41,3 +42,5 @@ def main() -> None:
         predicted.run(client, folder)
     elif args.step == "score":
         score.run(client, folder)
+    elif args.step == "topics":
+        topics.run(client, folder)

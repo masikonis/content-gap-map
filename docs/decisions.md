@@ -433,3 +433,35 @@ viewer, when it comes, reads those files.
 
 **Why:** fewest moving parts, and the files are the record. A server would only pay off once
 reviewing in a browser is needed often.
+
+## 2026-10-30: How questions are grouped into topics (milestone 2)
+
+**Chose:**
+- **What gets grouped:** real collected phrases only (no predicted questions), after Claude
+  (Sonnet) tags each one as a buyer phrase or not under the site's profile rule. Only buyer phrases
+  are grouped.
+- **How:** plain code first merges near-duplicates (the same words in any order or form). Claude
+  then groups the rest into topics, one seed's phrases at a time, under the same rule as scoring:
+  a topic is one question a buyer wants answered, so one answer would satisfy every phrase in it.
+  Each topic gets a short plain name. A final pass merges topics that mean the same thing across
+  seeds. Code checks every answer: a phrase assigned twice keeps its first topic, and a phrase left
+  out becomes a topic of its own and is counted.
+- **The test:** in a reviewed run, phrases the judges matched to the same answer-key question
+  should land in the same topic. The score is the share of those pairs kept together. Pairs matched
+  to different questions are reported too, as a rough check against topics that lump things
+  together, since two different questions can still share a topic.
+
+**Alternatives:** grouping everything collected; Claude alone without the duplicate merge; an
+embedding model with clustering code, which would need an AI model running on the local machine.
+
+**Why:** the report should only show topics buyers care about, and shorter, cleaner lists group
+better. Merging exact rewordings is a job for code; deciding what means the same is a job for
+Claude. Using the scoring rule as the topic rule keeps milestones 1 and 2 consistent, and the pair
+test reuses data a review already checked, so it needs no new labelling.
+
+First results: on the public demo, 863 buyer phrases became 194 topics; 77% of same-question pairs
+landed together and 98% of different-question pairs were kept apart. On a private services client
+with ten times the long tail, 96% and 88%, but with 1,116 topics, most of them a single phrase.
+Known weak spots: some over-splitting ("best newsletter software" versus "best software for
+creating a newsletter"), a few foreign-language phrases tagged as buyer phrases, and a long tail of
+one-phrase topics that the report will need to fold away. No target is set for milestone 2 yet.

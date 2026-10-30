@@ -10,7 +10,6 @@ second judge shows where the two disagree, for a person to review.
 import csv
 import json
 import math
-import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -18,6 +17,7 @@ from cgm import claude
 from cgm.client import Client
 from cgm.files import read_rows
 from cgm.profiles import profile
+from cgm.text import seed_words, words
 
 JUDGE = "sonnet"
 SECOND_JUDGE = "opus"
@@ -166,22 +166,6 @@ def found_by(row: dict, sources: dict[str, set[str]], wanted: set[str]) -> bool:
     return any(sources[m] & wanted for m in row["matches"])
 
 
-def stem(word: str) -> str:
-    """A light English stem, so "prices" meets "price" and "cleaning" meets "clean"."""
-    for suffix in ("ing", "ed"):
-        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
-            return word[:-len(suffix)]
-    if word.endswith("es") and word[:-2].endswith(("s", "x", "z", "ch", "sh")) and len(word) >= 5:
-        return word[:-2]
-    if word.endswith("s") and not word.endswith("ss") and len(word) >= 4:
-        return word[:-1]
-    return word
-
-
-def words(text: str) -> set[str]:
-    return {stem(w) for w in re.findall(r"\w+", text.lower())}
-
-
 def shortlists(key: dict[str, list[str]], phrases: list[str],
                seeds: list[str]) -> dict[str, tuple[tuple[str, ...], set[str]]]:
     """For each question, a seed list and its own extras.
@@ -194,7 +178,7 @@ def shortlists(key: dict[str, list[str]], phrases: list[str],
     phrase_words = {p: words(p) for p in phrases}
     df = Counter(w for ws in phrase_words.values() for w in ws)
     idf = {w: math.log(len(phrases) / n) for w, n in df.items()}
-    seed_word = {s: min(sorted(words(s)), key=lambda w: df[w]) for s in seeds}
+    seed_word = seed_words(phrases, seeds)
     by_seed = {s: {p for p in phrases if w in phrase_words[p]} for s, w in seed_word.items()}
     lists = {}
     for question, own in key.items():

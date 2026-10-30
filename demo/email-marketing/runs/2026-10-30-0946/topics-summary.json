@@ -1,0 +1,21 @@
+{
+  "real_phrases": 1473,
+  "buyer_phrases": 863,
+  "after_merging_rewordings": 819,
+  "topics": 194,
+  "largest_topics": [
+    55,
+    35,
+    31,
+    26,
+    25
+  ],
+  "single_phrase_topics": 76,
+  "left_out_by_claude": 8,
+  "pair_test": {
+    "same_question_pairs": 911,
+    "share_together": 0.774,
+    "different_question_pairs": 16350,
+    "share_apart": 0.983
+  }
+}

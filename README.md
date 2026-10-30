@@ -98,14 +98,33 @@ published 74% stays the reviewed figure.
 (covered by a Claude subscription). Every call is in
 [trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/first-score/trace.jsonl).
 
+## Second result: milestone 2 on the public demo
+
+Milestone 2 groups the collected buyer phrases into topics. On the demo, Claude tagged 863 of the
+1,473 collected phrases as buyer phrases, plain code merged rewordings down to 819, and Claude
+grouped them into 194 named topics, such as "How much does email marketing software cost?" (21
+phrases) or "Can Mailchimp send transactional emails?" (8). The full list is in
+[topics.csv](demo/email-marketing/runs/2026-10-30-0946/topics.csv).
+
+| Measure | Result |
+|---|---|
+| Phrase pairs matched to the same answer-key question that share a topic | 77% |
+| Phrase pairs matched to different questions that are kept apart | 98% |
+
+The test pairs come from the judges' matches on questions the milestone 1 review marked found;
+no person checked the topics. The misses are mostly fine distinctions the matches blur, plus some
+real over-splitting, such as "What is the best newsletter software?" and "What is the best
+software for creating a newsletter?" as two topics. A few foreign-language phrases slipped into the
+buyer set. It took 17 Claude calls, about 2 minutes, $0.42 at list price.
+
 ## Status
 
-Early. Milestone 1 sits on its target line on the public demo (above). Question collection
-(Google autocomplete, and Search Console for your own site) and its scorer are built, with Claude
-web search and predicted questions as optional extras. Grouping, site reading and the report are
-not built yet. It is built in public, one step at a time. The choices made so far and the reasons
-for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with their options,
-are in [docs/architecture.md](docs/architecture.md).
+Early. Milestone 1 sits on its target line on the public demo (above). Question collection (Google
+autocomplete, and Search Console for your own site) and its scorer are built, with Claude web search
+and predicted questions as optional extras, and grouping into topics works (above). Site reading and
+the report are not built yet. It is built in public, one step at a time. The choices made so far and
+the reasons for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with their
+options, are in [docs/architecture.md](docs/architecture.md).
 
 ## Run it
 
@@ -120,6 +139,7 @@ uv run cgm searchconsole <name>  # add your own Search Console exports (see CLAU
 uv run cgm websearch <name>      # optional: questions people wrote online, checked on the page
 uv run cgm predicted <name>      # optional: predicted AI-assistant questions, scored apart
 uv run cgm score <name>          # score the run against an answer key in private/<name>/answer-key/
+uv run cgm topics <name>         # group the run's buyer phrases into topics
 ```
 
 ## License

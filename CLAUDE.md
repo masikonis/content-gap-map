@@ -40,6 +40,9 @@
   and never counted as demand.
 - `src/cgm/websearch.py`: optional source, off by default. Claude web search for questions people
   wrote, then a plain-code check that each question is on its page.
+- `src/cgm/topics.py`: milestone 2. Tags buyer phrases, merges rewordings, groups them into named
+  topics with Claude, and runs the pair test when the run has reviewed verdicts.
+- `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
 - `src/cgm/claude.py`: the only place Claude is called. Trimmed `claude -p` with a JSON schema;
   every call appends a line to the run's `trace.jsonl`.
 - `src/cgm/score.py`: milestone 1 scorer. Seed-word shortlists per question, buyer tags, two
@@ -57,6 +60,7 @@ uv run cgm searchconsole <client>      # merges the client's Search Console zips
 uv run cgm websearch <client>          # optional: adds to the latest run (or --run <name>)
 uv run cgm predicted <client>          # optional: predicted AI-style questions, never demand
 uv run cgm score <client>              # scores the latest run against the answer key
+uv run cgm topics <client>             # groups the latest run's buyer phrases into topics
 ```
 
 ## Data layout
@@ -78,6 +82,7 @@ private/blocklist.txt          terms the local pre-commit hook refuses to commit
     disagreements.csv
     trace.jsonl                        every Claude call
     reviewed.csv, reviewed-summary.json   the reviewed verdicts, once a review is done
+    topics.csv, topics-summary.json    buyer phrases grouped into topics, and the pair test
     first-score/                       a score kept as published, when a later one replaces it
 ```
 
