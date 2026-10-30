@@ -41,13 +41,18 @@ def parse(reply: list) -> list[tuple[str, int | None]]:
             for i, text in enumerate(suggestions)]
 
 
+def decode(response: httpx.Response) -> list:
+    """Google sometimes answers in a non-UTF-8 charset; read the text in the charset it declares."""
+    return json.loads(response.text)
+
+
 def fetch(http: httpx.Client, query: str, language: str, country: str) -> list:
     params = {"client": "chrome", "hl": language, "gl": country, "q": query}
     for attempt in range(2):
         response = http.get(URL, params=params)
         if response.status_code not in (429, 503):
             response.raise_for_status()
-            return response.json()
+            return decode(response)
         if attempt == 0:
             time.sleep(BACKOFF)
     raise Blocked(f"Google refused {query!r} with {response.status_code} twice.")

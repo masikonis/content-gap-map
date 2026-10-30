@@ -38,3 +38,11 @@ def test_each_site_type_gets_its_own_words_and_unknown_types_fall_back():
     assert "piano software alternatives" in expand("piano software", B2B_SOFTWARE)
     assert "best piano software" in expand("piano software", B2B_SOFTWARE)
     assert profile("publisher") == profile("generic")
+
+
+def test_decode_reads_a_reply_in_the_charset_google_declares():
+    import httpx
+    from cgm.autocomplete import decode
+    body = '["piano", ["piano à queue"], [], {}]'.encode("iso-8859-1")
+    response = httpx.Response(200, content=body, headers={"content-type": "text/javascript; charset=ISO-8859-1"})
+    assert decode(response)[1] == ["piano à queue"]
