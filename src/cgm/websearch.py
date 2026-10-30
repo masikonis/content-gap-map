@@ -20,6 +20,7 @@ import httpx
 from cgm import claude
 from cgm.autocomplete import PAUSE, USER_AGENT
 from cgm.client import Client
+from cgm.profiles import profile
 
 MODEL = "sonnet"
 TOOLS = "WebSearch,WebFetch"
@@ -39,8 +40,7 @@ SCHEMA = {
 PROMPT = """Use web search to find about 25 real questions people asked online about "{seed}",
 as potential customers of a {site_type} business that offers it.
 
-Cover these angles: why, what happens if, when and when not, risks and worries, what is included,
-comparisons between options, and hiring someone versus doing it yourself. Cost questions are
+Cover these angles: {angles}. Cost questions are
 already well covered elsewhere, so include only a few.
 
 Only include questions a person asked in their own words, on forums, Q&A sites, community threads
@@ -177,6 +177,7 @@ def run(client: Client, run_folder: Path) -> None:
     found = []
     for seed in client.seeds:
         prompt = PROMPT.format(seed=seed, site_type=client.site_type,
+                               angles=profile(client.site_type).angles,
                                language=client.language, country=client.country)
         answer = claude.ask(prompt, SCHEMA, MODEL, trace, f"websearch: {seed}", tools=TOOLS)
         found += [(seed, q["question"], q["url"]) for q in answer["questions"]]

@@ -57,8 +57,10 @@ that offers the same thing, or news and trivia about one company.""",
 cost, comparisons between options, and doing it yourself versus paying for it""",
 )
 
-PROFILES = {"services": SERVICES, "b2b-software": B2B_SOFTWARE, "generic": GENERIC}
+# Publishers have no profile of their own yet, so they use the generic one.
+PROFILES = {"services": SERVICES, "b2b-software": B2B_SOFTWARE, "publisher": GENERIC,
+            "generic": GENERIC}
 
 
 def profile(site_type: str) -> Profile:
-    return PROFILES.get(site_type, GENERIC)
+    return PROFILES[site_type]

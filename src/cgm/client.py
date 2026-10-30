@@ -4,6 +4,8 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
+from cgm.profiles import PROFILES
+
 
 @dataclass
 class Site:
@@ -29,7 +31,7 @@ def load_client(folder: Path) -> Client:
         raise SystemExit(f"No client file at {path}. Copy examples/client.example.toml there.")
     data = tomllib.loads(path.read_text())
     try:
-        return Client(
+        client = Client(
             folder=folder,
             name=data["name"],
             site_type=data["site_type"],
@@ -41,3 +43,6 @@ def load_client(folder: Path) -> Client:
         )
     except KeyError as missing:
         raise SystemExit(f"{path} is missing {missing}.")
+    if client.site_type not in PROFILES:
+        raise SystemExit(f"{path}: site_type {client.site_type!r} is not one of {', '.join(PROFILES)}.")
+    return client

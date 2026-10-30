@@ -59,7 +59,7 @@ def fetch(http: httpx.Client, query: str, language: str, country: str) -> list:
 
 
 def run(client: Client) -> Path:
-    out = client.folder / "runs" / datetime.now().strftime("%Y-%m-%d-%H%M")
+    out = client.folder / "runs" / datetime.now().strftime("%Y-%m-%d-%H%M%S")
     (out / "responses").mkdir(parents=True)
     words = profile(client.site_type)
     queries = [(seed, q) for seed in client.seeds for q in expand(seed, words)]

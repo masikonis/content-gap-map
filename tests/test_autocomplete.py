@@ -46,3 +46,11 @@ def test_decode_reads_a_reply_in_the_charset_google_declares():
     body = '["piano", ["piano à queue"], [], {}]'.encode("iso-8859-1")
     response = httpx.Response(200, content=body, headers={"content-type": "text/javascript; charset=ISO-8859-1"})
     assert decode(response)[1] == ["piano à queue"]
+
+
+def test_an_unknown_site_type_is_refused(tmp_path):
+    import pytest
+    example = Path(__file__).parent.parent / "examples" / "client.example.toml"
+    (tmp_path / "client.toml").write_text(example.read_text().replace('"services"', '"servicez"'))
+    with pytest.raises(SystemExit, match="servicez"):
+        load_client(tmp_path)

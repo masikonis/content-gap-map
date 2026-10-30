@@ -29,8 +29,10 @@ def main() -> None:
     if args.step == "autocomplete":
         autocomplete.run(client)
         return
-    runs = client.folder / "runs"
-    folder = runs / args.run if args.run else max(runs.iterdir())
+    runs = sorted(p for p in (client.folder / "runs").glob("*") if p.is_dir())
+    if not runs:
+        raise SystemExit(f"No runs in {client.folder / 'runs'}. Start one with: cgm autocomplete {args.client}")
+    folder = client.folder / "runs" / args.run if args.run else runs[-1]
     if args.step == "searchconsole":
         searchconsole.run(client, folder)
     elif args.step == "websearch":

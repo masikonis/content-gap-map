@@ -166,9 +166,14 @@ def found_by(row: dict, sources: dict[str, set[str]], wanted: set[str]) -> bool:
 
 
 def stem(word: str) -> str:
-    for suffix in ("ing", "es", "ed", "s"):
+    """A light English stem, so "prices" meets "price" and "cleaning" meets "clean"."""
+    for suffix in ("ing", "ed"):
         if word.endswith(suffix) and len(word) - len(suffix) >= 3:
             return word[:-len(suffix)]
+    if word.endswith("es") and word[:-2].endswith(("s", "x", "z", "ch", "sh")) and len(word) >= 5:
+        return word[:-2]
+    if word.endswith("s") and not word.endswith("ss") and len(word) >= 4:
+        return word[:-1]
     return word
 
 
@@ -230,13 +235,19 @@ def run(client: Client, run_folder: Path) -> None:
     tags = tag_buyers(client, questions, trace)
 
     seeds = list(dict.fromkeys(client.seeds + [s for own in key.values() for s in own]))
-    lists = shortlists(key, phrases, seeds)
+    # The headline passes see real demand only, so predicted or unverified phrases can't crowd
+    # real ones out of a shortlist. One more pass over everything gives the "with" shares.
+    real = [p for p in phrases if sources[p] & VERIFIED]
+    lists = shortlists(key, real, seeds)
     sizes = sorted(len(set(base) | extra) for base, extra in lists.values())
-    print(f"shortlists: {len(phrases)} phrases, {sizes[0]} to {sizes[-1]} per question", flush=True)
+    print(f"shortlists: {len(real)} real phrases, {sizes[0]} to {sizes[-1]} per question", flush=True)
 
     passes = {"judge pass 1": judge(questions, lists, JUDGE, trace, "judge pass 1"),
               "judge pass 2": judge(questions, lists, JUDGE, trace, "judge pass 2"),
               "second judge": judge(questions, lists, SECOND_JUDGE, trace, "second judge")}
+    if len(real) < len(phrases):
+        passes["with predicted and unverified"] = judge(
+            questions, shortlists(key, phrases, seeds), JUDGE, trace, "with predicted and unverified")
 
     with open(run_folder / "score.csv", "w", newline="") as f:
         writer = csv.writer(f)
@@ -262,11 +273,14 @@ def run(client: Client, run_folder: Path) -> None:
     summary = summarize(passes, tags, sources)
     reviewed = run_folder / "reviewed.csv"
     if reviewed.exists():
-        # Reviewed verdicts cover autocomplete only, so judges are compared on those matches.
-        truth = {r["question"]: r["found"] == "True" for r in csv.DictReader(open(reviewed))}
+        # A review covers the sources named in its "sources" column (autocomplete if absent), so
+        # judges are compared on matches from those sources only.
+        review = list(csv.DictReader(open(reviewed)))
+        covered = set((review[0].get("sources") or "autocomplete").split("; ")) if review else set()
+        truth = {r["question"]: r["found"] == "True" for r in review}
         summary["accuracy_against_reviewed"] = {
-            name: accuracy([{**r, "found": found_by(r, sources, {"autocomplete"})} for r in rows], truth)
-            for name, rows in passes.items()}
+            name: accuracy([{**r, "found": found_by(r, sources, covered)} for r in rows], truth)
+            for name, rows in passes.items() if name != "with predicted and unverified"}
     (run_folder / "score-summary.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))
 
@@ -275,9 +289,9 @@ def share(rows: list[dict], test=lambda r: r["found"]) -> float | None:
     return round(sum(map(test, rows)) / len(rows), 3) if rows else None
 
 
-def accuracy(rows: list[dict], truth: dict[str, bool]) -> float:
+def accuracy(rows: list[dict], truth: dict[str, bool]) -> float | None:
     known = [r for r in rows if r["question"] in truth]
-    return round(sum(r["found"] == truth[r["question"]] for r in known) / len(known), 3)
+    return round(sum(r["found"] == truth[r["question"]] for r in known) / len(known), 3) if known else None
 
 
 def agreement(a: list[dict], b: list[dict]) -> float:
@@ -286,31 +300,35 @@ def agreement(a: list[dict], b: list[dict]) -> float:
 
 def summarize(passes: dict[str, list[dict]], tags: dict[str, dict],
               sources: dict[str, set[str]]) -> dict:
+    """Headline shares come from the first pass, which saw real phrases only. Shares that include
+    predicted or unverified phrases come from the pass that saw everything, when there is one."""
     first = passes["judge pass 1"]
-    buyers = [r for r in first if tags[r["question"]]["buyer"]]
-    by = {label: lambda r, w=wanted: found_by(r, sources, w)
-          for label, wanted in [("all sources", VERIFIED),
-                                ("all sources, with unverified", VERIFIED | {"websearch-unverified"}),
-                                ("all sources, with predicted", VERIFIED | {"predicted"}),
-                                ("autocomplete", {"autocomplete"}),
-                                ("searchconsole", {"searchconsole"}),
-                                ("searchconsole, AI searches", {"searchconsole-ai"}),
-                                ("websearch", {"websearch"}),
-                                ("websearch, with unverified", {"websearch", "websearch-unverified"}),
-                                ("predicted", {"predicted"})]}
-    single = {"autocomplete": {"autocomplete"}, "searchconsole": {"searchconsole"},
-              "searchconsole, AI searches": {"searchconsole-ai"},
-              "websearch, with unverified": {"websearch", "websearch-unverified"},
-              "predicted": {"predicted"}}
-    only = {label: [r["question"] for r in buyers if found_by(r, sources, mine)
+    extended = passes.get("with predicted and unverified", first)
+    buyer = lambda rows: [r for r in rows if tags[r["question"]]["buyer"]]
+    labels = [("all sources", VERIFIED, first),
+              ("all sources, with unverified", VERIFIED | {"websearch-unverified"}, extended),
+              ("all sources, with predicted", VERIFIED | {"predicted"}, extended),
+              ("autocomplete", {"autocomplete"}, first),
+              ("searchconsole", {"searchconsole"}, first),
+              ("searchconsole, AI searches", {"searchconsole-ai"}, first),
+              ("websearch", {"websearch"}, first),
+              ("websearch, with unverified", {"websearch", "websearch-unverified"}, extended),
+              ("predicted", {"predicted"}, extended)]
+    singles = [("autocomplete", {"autocomplete"}, first), ("searchconsole", {"searchconsole"}, first),
+               ("searchconsole, AI searches", {"searchconsole-ai"}, first),
+               ("websearch, with unverified", {"websearch", "websearch-unverified"}, extended),
+               ("predicted", {"predicted"}, extended)]
+    only = {label: [r["question"] for r in buyer(rows) if found_by(r, sources, mine)
                     and not found_by(r, sources, set(SOURCES) - mine)]
-            for label, mine in single.items()}
+            for label, mine, rows in singles}
     return {
         "questions": len(first),
-        "buyer_questions": len(buyers),
-        "share_found_buyer": share(buyers, by["all sources"]),
-        "share_found_all": share(first, by["all sources"]),
-        "share_found_buyer_by_source": {label: share(buyers, test) for label, test in by.items()},
+        "buyer_questions": len(buyer(first)),
+        "share_found_buyer": share(buyer(first), lambda r: found_by(r, sources, VERIFIED)),
+        "share_found_all": share(first, lambda r: found_by(r, sources, VERIFIED)),
+        "share_found_buyer_by_source": {
+            label: share(buyer(rows), lambda r, w=wanted: found_by(r, sources, w))
+            for label, wanted, rows in labels},
         "buyer_questions_only_one_source_found": only,
         "flip_rate": round(1 - agreement(first, passes["judge pass 2"]), 3),
         "judge_agreement": agreement(first, passes["second judge"]),

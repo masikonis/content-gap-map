@@ -86,3 +86,28 @@ def test_shortlists_keep_seed_phrases_plus_close_wordings():
     # A close wording without the seed's word still reaches the judge through the extras.
     assert "cheapest music teacher" in lists["Who is the cheapest music teacher?"][1]
     assert "cheapest music teacher" not in lists["Who is the cheapest music teacher?"][0]
+
+
+def test_stem_joins_singular_and_plural():
+    from cgm.score import stem
+    assert stem("prices") == stem("price") == "price"
+    assert stem("alternatives") == stem("alternative")
+    assert stem("boxes") == "box" and stem("class") == "class" and stem("cleaning") == "clean"
+
+
+def test_accuracy_is_none_when_no_question_was_reviewed():
+    assert accuracy([{"question": "a", "found": True}], {}) is None
+
+
+def test_headline_uses_real_phrases_and_predicted_shares_use_the_extended_pass():
+    real = [{"question": "a", "found": True, "matches": ["typed"]},
+            {"question": "b", "found": False, "matches": []}]
+    extended = [{"question": "a", "found": True, "matches": ["typed"]},
+                {"question": "b", "found": True, "matches": ["guessed"]}]
+    passes = {"judge pass 1": real, "judge pass 2": real, "second judge": real,
+              "with predicted and unverified": extended}
+    tags = {"a": {"buyer": True}, "b": {"buyer": True}}
+    summary = summarize(passes, tags, {"typed": {"autocomplete"}, "guessed": {"predicted"}})
+    assert summary["share_found_buyer"] == 0.5
+    assert summary["share_found_buyer_by_source"]["all sources, with predicted"] == 1.0
+    assert summary["buyer_questions_only_one_source_found"]["predicted"] == ["b"]
