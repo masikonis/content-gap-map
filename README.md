@@ -115,8 +115,14 @@ The full list is in [topics.csv](demo/email-marketing/runs/2026-10-30-0946/topic
 **How to read it.** The test pairs come from the judges' matches on the 25 questions the milestone
 1 review marked found (890 same-question pairs). Random grouping into topics of the same sizes is
 the baseline: the first two rows are far above it, so the grouping is doing real work. The third
-row is not: random grouping keeps almost every pair apart too, so it can't show lumping. No target
-is set for milestone 2 yet, and no person checked the topics.
+row is not: random grouping keeps almost every pair apart too, so it can't show lumping. No person
+checked the topics.
+
+**Target.** Each topic should be one question, so a page can be matched to it. The topics are a
+working list, not the result a person reads: the report will rank them into a short list of the
+gaps most worth a page. The pass marks are at least 85% on the per-question row above (set after
+seeing this result), and at least 18 of 20 randomly picked topics judged single-question by an
+outside model. The first passes; the second check is not built yet.
 
 **What is still weak.** 33 topics hold a single phrase. "Which tools exist" and "which tool is
 best" are still separate topics. Claude's last check flags 12 topic pairs as possible duplicates.

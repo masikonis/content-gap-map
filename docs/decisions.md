@@ -478,5 +478,31 @@ before the merge pass), 33 of them a single phrase. 91% of same-question pairs s
 per question), against 2% for random grouping. 12 topic pairs are flagged as possible duplicates.
 Known weak spots: "which tools exist" and "which tool is best" are still separate topics, buyer
 tagging varies slightly between runs (820 and 837 buyer phrases on the same input), and no person
-has checked the topics. Earlier private runs used older code and have not been redone. No target
-is set for milestone 2 yet.
+has checked the topics. Earlier private runs used older code and have not been redone.
+
+## 2026-10-30: Topics are a full working list; the report ranks them later
+
+**Chose:** milestone 2 keeps every topic, however many there are, as a working list for the tool.
+A person never reads it as the result. Matching pages (milestone 3) and verdicts (milestone 4) run
+on the full list, and milestone 5 ranks it into the short list a person reads: the 10 to 20 gaps
+most worth a page, by how many buyers ask and whether only competitors answer. The full list stays
+in the run folder as evidence.
+
+**Alternatives:** shrinking the topics now into 20 to 30 broad themes, readable at once but lumping
+questions so that one page can't be matched to a topic; the full list plus broad theme headings in
+the report, for display only, left out until a real report shows it is needed.
+
+**Why:** a page answers one question, so matching needs one question per topic. Whether a topic is
+worth a page depends on what competitors answer, which only milestones 3 and 4 show, so ranking
+belongs at the end. A long tail of one-phrase topics costs the reader nothing when it ranks low.
+What it costs: nobody sees a readable result until milestone 5.
+
+**Target for milestone 2:** each topic is one question, checked two ways.
+- **Not split:** at least 85% of same-question phrase pairs share a topic, with each answer-key
+  question counted equally.
+- **Not lumped:** at least 18 of 20 topics, picked at random with a fixed seed, hold one question,
+  judged blind by an outside model (Claude Fable or OpenAI Codex) that does not see the scores.
+
+Topic count and one-phrase topics are not part of the target. The target was set after the first
+result (88% on the split check), so it shows the bar going forward, not a prediction made in
+advance. The lump check is not built yet.
