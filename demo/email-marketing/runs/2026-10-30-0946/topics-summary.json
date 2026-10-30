@@ -2,30 +2,63 @@
   "real_phrases": 1473,
   "buyer_phrases": 837,
   "after_merging_rewordings": 761,
-  "topics": 131,
-  "topics_before_merge": 136,
+  "topics": 123,
+  "topics_before_merge": 126,
   "largest_topics": [
-    46,
-    42,
-    40,
-    31,
+    45,
+    35,
+    34,
+    29,
     29
   ],
-  "single_phrase_topics": 33,
-  "left_out_by_claude": 6,
-  "names_fixed": 2,
+  "single_phrase_topics": 30,
+  "left_out_by_claude": 0,
+  "names_fixed": 0,
   "names_not_questions": 0,
-  "possible_duplicate_topic_pairs": 12,
+  "possible_duplicate_topic_pairs": 56,
   "pair_test": {
     "questions": 25,
     "same_question_pairs": 890,
-    "share_together": 0.908,
-    "share_together_per_question": 0.875,
+    "share_together": 0.855,
+    "share_together_per_question": 0.869,
     "share_apart": 0.997,
     "random_baseline": {
-      "share_together": 0.02,
-      "share_together_per_question": 0.018,
-      "share_apart": 0.982
+      "share_together": 0.017,
+      "share_together_per_question": 0.009,
+      "share_apart": 0.983
     }
+  },
+  "split_check_passes": true,
+  "lump_check": {
+    "judge": "fable",
+    "topics_checked": 20,
+    "one_question": 14,
+    "passes": false,
+    "not_one_question": [
+      {
+        "topic": "What is the cheapest email marketing platform?",
+        "reason": "Most phrases want the cheapest email marketing platform, but 'is email marketing cheap' and 'email marketing cost effective' ask whether the channel itself is cheap/cost-effective, a different answer from a tool list."
+      },
+      {
+        "topic": "What is the best transactional email API?",
+        "reason": "Generic 'best transactional email api' differs from vendor-specific 'klaviyo transactional email api', 'transactional email api bloomreach', 'transactional email api hubspot', 'zoho transactional email api', each needing its own answer."
+      },
+      {
+        "topic": "What is the easiest email marketing software for beginners?",
+        "reason": "'is email marketing easy' / 'is email marketing hard' ask about the difficulty of the practice, while the rest ask for the easiest/beginner software."
+      },
+      {
+        "topic": "What is the best email marketing software for ecommerce?",
+        "reason": "'how to email marketing on shopify' asks for a how-to process, while the rest ask for the best ecommerce/Shopify email marketing software."
+      },
+      {
+        "topic": "How do I automate email for ecommerce and Shopify?",
+        "reason": "'email automation klaviyo' is about one specific tool's automation, while the rest ask for the best automation for Shopify/ecommerce in general."
+      },
+      {
+        "topic": "What is SuperMailer newsletter software?",
+        "reason": "'what is newsletter software supermailer' asks what the tool is, while 'newsletter software supermailer spam' asks about spam/deliverability issues with it."
+      }
+    ]
   }
 }

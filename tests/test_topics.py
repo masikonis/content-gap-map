@@ -37,3 +37,21 @@ def test_pair_test_scores_against_a_random_baseline():
     assert result["share_together_per_question"] == 0.5
     assert result["share_apart"] == 0.5
     assert set(result["random_baseline"]) == {"share_together", "share_together_per_question", "share_apart"}
+
+
+def test_lump_sample_skips_single_phrase_topics_and_is_repeatable():
+    from cgm.topics import lump_sample
+    topics = [(f"t{n}?", ["a", "b"] if n % 2 else ["a"]) for n in range(1, 61)]
+    picked = lump_sample(topics)
+    assert len(picked) == 20 and picked == lump_sample(topics)
+    assert all(n % 2 for n in picked)
+
+
+def test_lump_check_counts_a_missing_verdict_as_a_fail(monkeypatch, tmp_path):
+    from cgm import topics as t
+    many = [(f"t{n}?", ["a", "b"]) for n in range(1, 21)]
+    answer = {"topics": [{"id": i, "one_question": i != 2, "reason": "r"} for i in range(1, 20)]}
+    monkeypatch.setattr(t.claude, "ask", lambda *a, **k: answer)
+    result = t.lump_check(many, tmp_path / "trace.jsonl")
+    assert result["one_question"] == 18 and result["passes"] is True
+    assert [f["reason"] for f in result["not_one_question"]] == ["r", "no verdict"]

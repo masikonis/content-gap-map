@@ -13,7 +13,8 @@
 Code checks every answer: a phrase assigned twice keeps its first topic, and a phrase left out
 becomes a topic of its own and is counted. With reviewed verdicts, the pair test checks that
 phrases matched to the same answer-key question share a topic, next to a random baseline. A name
-audit asks Claude which topic names mean the same thing, to count over-splitting.
+audit asks Claude which topic names mean the same thing, to count over-splitting. The lump check
+has an outside model judge LUMP_SAMPLE random topics blind, to count topics that mix questions.
 """
 
 import csv
@@ -36,6 +37,10 @@ TAG_BATCH = 150
 ONE_PASS = 1000
 GROUP_BATCH = 400
 MERGE_EXAMPLES = 15
+LUMP_MODEL = "fable"  # an outside judge: not the model that made the topics
+LUMP_SAMPLE = 20
+LUMP_PASS = 18
+SPLIT_PASS = 0.85
 
 TAG_SCHEMA = {"type": "object", "properties": {"buyer": {"type": "array", "items": {"type": "integer"}}},
               "required": ["buyer"]}
@@ -120,6 +125,19 @@ numbers whose questions one answer would satisfy, so the two topics should have 
 
 Topics:
 {topics}"""
+
+LUMP_SCHEMA = {"type": "object", "properties": {"topics": {"type": "array", "items": {
+    "type": "object", "properties": {"id": {"type": "integer"}, "one_question": {"type": "boolean"},
+                                     "reason": {"type": "string"}},
+    "required": ["id", "one_question", "reason"]}}}, "required": ["topics"]}
+
+LUMP_PROMPT = """Each numbered group below holds search phrases that were put together as one
+topic. For each group, decide whether it is one question: one answer would satisfy every phrase in
+it. A group that mixes questions needing different answers (for example price and setup, or two
+different tools) is not one question. Give a short reason, naming the phrases that differ.
+
+Groups:
+{groups}"""
 
 NOISE = re.compile(r"^(19|20)\d\d$|^reddit$|^quora$|^youtube$")
 
@@ -230,6 +248,28 @@ def audit(topics: list[tuple[str, list[str]]], trace: Path) -> int:
                 if len(p) >= 2 and p[0] != p[1] and all(1 <= n <= len(topics) for n in p[:2])})
 
 
+def lump_sample(topics: list[tuple[str, list[str]]]) -> list[int]:
+    """Up to LUMP_SAMPLE topic numbers, picked with a fixed seed from topics of two or more phrases
+    (a single phrase can't be lumped)."""
+    candidates = [n for n, (_, members) in enumerate(topics, 1) if len(members) > 1]
+    return sorted(random.Random(0).sample(candidates, min(LUMP_SAMPLE, len(candidates))))
+
+
+def lump_check(topics: list[tuple[str, list[str]]], trace: Path) -> dict:
+    """An outside model judges sampled topics blind: it sees the phrases, not the names or scores.
+    A topic with no verdict counts as not one question."""
+    picked = lump_sample(topics)
+    groups = "\n".join(f"{i}. {'; '.join(topics[n - 1][1])}" for i, n in enumerate(picked, 1))
+    answer = claude.ask(LUMP_PROMPT.format(groups=groups), LUMP_SCHEMA, LUMP_MODEL, trace,
+                        "topics: lump check")
+    verdicts = {v["id"]: v for v in answer["topics"] if 1 <= v["id"] <= len(picked)}
+    failed = [{"topic": topics[n - 1][0], "reason": verdicts.get(i, {}).get("reason", "no verdict")}
+              for i, n in enumerate(picked, 1) if not verdicts.get(i, {}).get("one_question")]
+    return {"judge": LUMP_MODEL, "topics_checked": len(picked), "one_question": len(picked) - len(failed),
+            "passes": len(picked) == LUMP_SAMPLE and len(picked) - len(failed) >= LUMP_PASS,
+            "not_one_question": failed}
+
+
 def pair_test(topic_of: dict[str, int], same_groups: list[set[str]]) -> dict:
     """Pairs of phrases matched to the same question that share a topic (pooled, and averaged per
     question so one big question can't dominate), pairs matched to different questions kept apart,
@@ -307,5 +347,8 @@ def run(client: Client, run_folder: Path) -> None:
     groups = reviewed_groups(run_folder)
     if groups:
         summary["pair_test"] = pair_test(topic_of, groups)
+        per = summary["pair_test"]["share_together_per_question"]
+        summary["split_check_passes"] = per is not None and per >= SPLIT_PASS
+    summary["lump_check"] = lump_check(topics, trace)
     (run_folder / "topics-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))

@@ -41,7 +41,8 @@
 - `src/cgm/websearch.py`: optional source, off by default. Claude web search for questions people
   wrote, then a plain-code check that each question is on its page.
 - `src/cgm/topics.py`: milestone 2. Tags buyer phrases, merges rewordings, groups them into named
-  topics with Claude, and runs the pair test when the run has reviewed verdicts.
+  topics with Claude, runs the pair test when the run has reviewed verdicts, and has Claude Fable
+  judge 20 random topics blind (the lump check).
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
 - `src/cgm/claude.py`: the only place Claude is called. Trimmed `claude -p` with a JSON schema;
   every call appends a line to the run's `trace.jsonl`.
