@@ -1,12 +1,13 @@
 from pathlib import Path
 
-from cgm.autocomplete import AFTER, BEFORE, expand, parse
+from cgm.autocomplete import expand, parse
+from cgm.profiles import B2B_SOFTWARE, SERVICES, profile
 from cgm.client import load_client
 
 
 def test_expand_covers_seed_question_words_and_alphabet():
     queries = expand("piano lessons")
-    assert len(queries) == 1 + len(BEFORE) + len(AFTER) + 26
+    assert len(queries) == 1 + len(SERVICES.before) + len(SERVICES.after) + 26
     assert queries[0] == "piano lessons"
     assert "how much piano lessons" in queries
     assert "piano lessons cost" in queries
@@ -31,3 +32,9 @@ def test_example_client_file_loads(tmp_path: Path):
     client = load_client(tmp_path)
     assert client.seeds == ["piano lessons", "piano lessons springfield"]
     assert len(client.competitors) == 2
+
+
+def test_each_site_type_gets_its_own_words_and_unknown_types_fall_back():
+    assert "piano software alternatives" in expand("piano software", B2B_SOFTWARE)
+    assert "best piano software" in expand("piano software", B2B_SOFTWARE)
+    assert profile("publisher") == profile("generic")

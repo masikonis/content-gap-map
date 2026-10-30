@@ -9,6 +9,7 @@ from pathlib import Path
 
 from cgm import claude
 from cgm.client import Client
+from cgm.profiles import profile
 
 MODEL = "sonnet"
 PER_SEED = 25
@@ -24,9 +25,7 @@ assistant such as ChatGPT about "{seed}", in the language with code "{language}"
 living in the country with code "{country}".
 
 Write them the way people talk to an assistant: full sentences, often with their situation in
-them. Cover these angles: why, what happens if, when and when not, risks and worries, what is
-included, how long it takes, comparisons between options, cost, and hiring someone versus doing it
-yourself. One question per item, no numbering."""
+them. Cover these angles: {angles}. One question per item, no numbering."""
 
 
 def run(client: Client, run_folder: Path) -> None:
@@ -37,6 +36,7 @@ def run(client: Client, run_folder: Path) -> None:
         total = 0
         for seed in client.seeds:
             prompt = PROMPT.format(count=PER_SEED, site_type=client.site_type, seed=seed,
+                                   angles=profile(client.site_type).angles,
                                    language=client.language, country=client.country)
             answer = claude.ask(prompt, SCHEMA, MODEL, trace, f"predicted: {seed}")
             for question in answer["questions"]:

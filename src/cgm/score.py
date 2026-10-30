@@ -15,6 +15,7 @@ from pathlib import Path
 
 from cgm import claude
 from cgm.client import Client
+from cgm.profiles import profile
 
 JUDGE = "sonnet"
 SECOND_JUDGE = "opus"
@@ -74,11 +75,8 @@ TAG_SCHEMA = {
 
 TAG_PROMPT = """A {site_type} business offers: {services}.
 
-For each numbered question, decide whether it is a buyer question: one a person would ask while
-deciding whether, when or whom to hire for these services (price, value, what is included, how
-often, which option, what to expect). It is not a buyer question if it is about doing the job
-yourself, buying equipment or supplies, running or pricing a business that offers the service, or
-one specific other company. Keep "reason" under 15 words.
+For each numbered question, decide whether it is a buyer question: {buyer} Keep "reason" under
+15 words.
 
 Questions:
 {questions}"""
@@ -130,6 +128,7 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
     tags = {}
     for group in batches(questions):
         answer = claude.ask(TAG_PROMPT.format(site_type=client.site_type,
+                                              buyer=profile(client.site_type).buyer,
                                               services=", ".join(client.seeds),
                                               questions=numbered(group)),
                             TAG_SCHEMA, TAGGER, trace, "tag buyer questions")

@@ -6,7 +6,8 @@ site_type = "services"   # b2b-software, services, publisher or generic
 language = "en"
 country = "us"
 
-# Starting phrases for question collection: the services to map, optionally with a town.
+# Starting phrases for question collection: short category phrases for what the business sells,
+# optionally with a town. Autocomplete grows suggestions from the start of a phrase, so keep them short.
 seeds = [
   "piano lessons",
   "piano lessons springfield",

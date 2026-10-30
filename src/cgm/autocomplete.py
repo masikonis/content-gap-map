@@ -14,26 +14,22 @@ from pathlib import Path
 import httpx
 
 from cgm.client import Client
+from cgm.profiles import SERVICES, Profile, profile
 
 URL = "https://suggestqueries.google.com/complete/search"
 USER_AGENT = "content-gap-map/0.1 (+https://github.com/masikonis/content-gap-map)"
 PAUSE = 2.0
 BACKOFF = 60.0
 
-BEFORE = ["how", "how much", "how to", "what", "why", "when", "where", "which", "who",
-          "can", "do", "does", "is", "are", "should"]
-AFTER = ["cost", "price", "vs", "near me", "for", "with", "without", "worth it", "or", "and"]
-
-
 class Blocked(Exception):
     pass
 
 
-def expand(seed: str) -> list[str]:
-    """The seed alone, with question words before and after it, and with a to z after it."""
+def expand(seed: str, words: Profile = SERVICES) -> list[str]:
+    """The seed alone, with the profile's words before and after it, and with a to z after it."""
     return ([seed]
-            + [f"{word} {seed}" for word in BEFORE]
-            + [f"{seed} {word}" for word in AFTER]
+            + [f"{word} {seed}" for word in words.before]
+            + [f"{seed} {word}" for word in words.after]
             + [f"{seed} {letter}" for letter in string.ascii_lowercase])
 
 
@@ -60,7 +56,8 @@ def fetch(http: httpx.Client, query: str, language: str, country: str) -> list:
 def run(client: Client) -> Path:
     out = client.folder / "runs" / datetime.now().strftime("%Y-%m-%d-%H%M")
     (out / "responses").mkdir(parents=True)
-    queries = [(seed, q) for seed in client.seeds for q in expand(seed)]
+    words = profile(client.site_type)
+    queries = [(seed, q) for seed in client.seeds for q in expand(seed, words)]
     requests, rows, started = 0, 0, time.monotonic()
     unique = set()
 

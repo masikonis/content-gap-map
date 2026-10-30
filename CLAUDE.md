@@ -24,6 +24,8 @@
 - `docs/architecture.md`: the parts not decided yet, with their options.
 - `src/cgm/cli.py`: the `cgm` command and its steps.
 - `src/cgm/client.py`: loads `private/<client>/client.toml` (template: `examples/client.example.toml`).
+- `src/cgm/profiles.py`: site-type profiles (services, b2b-software, generic): autocomplete
+  expansion words, the buyer-question rule, and predicted-question angles.
 - `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
 - `src/cgm/searchconsole.py`: imports Search Console CSV exports (client's own site only) into a
   run. Exports are made by hand or with the Chrome connector, one per filter, each under 1,000 rows.

@@ -40,14 +40,22 @@ stronger verdict waits for the rung that can prove it. Sites with unreadable add
 ## 2026-10-23: Site types are profiles, with a generic fallback
 
 **Chose:** version one targets B2B software, services and publishers. Each site type is a small
-profile that the core reads; any other site runs on a generic profile that works, but less well.
-Adding a site type means adding one profile, not changing the core.
+profile in `src/cgm/profiles.py` holding the words that expand a seed for autocomplete, the rule
+for what counts as a buyer question, and the angles for predicted questions. Any other site type
+runs on the generic profile. Built so far: services, B2B software and generic; publishers use
+generic until they get their own. Seeds should be short category phrases ("cloud phone system",
+"voip"), because autocomplete only grows suggestions from the start of a phrase.
 
 **Alternatives:** one site type only (the simplest start); one generic approach for every site.
 
 **Why:** buyers on these sites ask different kinds of questions and get answers on different kinds
-of pages, so treating them alike gives weaker results. Keeping the differences in profiles keeps
-the core small and makes new types cheap to add.
+of pages, so treating them alike gives weaker results. The second test showed it: a services
+setup run on a B2B software site found 56% of buyer questions. Its buyer rule asked about hiring,
+so it dropped software research questions such as "what does unified communications do"; its
+expansion words missed "best", "types", "alternatives" and "pricing"; and its long seeds missed
+short searches like "voip disadvantages". The B2B software profile was written from that test, so
+it counts as proven only once it scores on a third site it wasn't written from. Keeping the
+differences in profiles keeps the core small and makes new types cheap to add.
 
 ## 2026-10-23: "Services" means service businesses
 
