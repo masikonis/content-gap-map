@@ -1,0 +1,50 @@
+{
+  "questions": 57,
+  "buyer_questions": 34,
+  "share_found_buyer": 0.706,
+  "share_found_all": 0.439,
+  "share_found_buyer_by_source": {
+    "all sources": 0.706,
+    "all sources, with unverified": 0.706,
+    "all sources, with predicted": 0.706,
+    "autocomplete": 0.706,
+    "searchconsole": 0.0,
+    "searchconsole, AI searches": 0.0,
+    "websearch": 0.0,
+    "websearch, with unverified": 0.0,
+    "predicted": 0.059
+  },
+  "buyer_questions_only_one_source_found": {
+    "autocomplete": [
+      "Which email marketing software is best?",
+      "What is the easiest email marketing platform?",
+      "What is a good replacement for Mailchimp?",
+      "What is the best email platform in 2026?",
+      "Does Microsoft have a newsletter tool?",
+      "What is the best free newsletter platform?",
+      "What is the best software to use to create a newsletter?",
+      "What is the best free email newsletter platform?",
+      "How do you automate an email?",
+      "Which tool is commonly used for email automation?",
+      "Is there a free email automation tool?",
+      "What is the best email automation service?",
+      "How do I automate emails?",
+      "What is a transactional email?",
+      "Which email provider is best for transactional emails?",
+      "Can you give me an example of a transactional email?",
+      "Do transactional emails need to unsubscribe?",
+      "Which transactional email service is free?",
+      "Are transactional emails subject to can spam?",
+      "What qualifies as a transactional email?",
+      "What is the best email marketing platform for a small business?",
+      "What's the cheapest email marketing?"
+    ],
+    "searchconsole": [],
+    "searchconsole, AI searches": [],
+    "websearch, with unverified": [],
+    "predicted": []
+  },
+  "flip_rate": 0.018,
+  "judge_agreement": 0.982,
+  "disagreements": 1
+}
