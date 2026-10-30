@@ -104,7 +104,8 @@ collected once per test client in a real browser session, one search at a time, 
 Nerijus's Chrome, never by the tool itself. Questions that appear under several seeds count once.
 Each question is tagged as a buyer question or not, and the headline score is the share of buyer
 questions the collector finds, matched by meaning rather than exact words, with the share of all
-questions reported next to it. The target is set once the scorer itself has been checked.
+questions reported next to it. **The target is 80% of buyer questions,** found by the default
+sources together, on a score a person has reviewed.
 
 **Alternatives:** no answer key, judging the collector's output by reading it; the site's own
 Search Console searches as the answer key; scoring all questions alike.
@@ -115,7 +116,9 @@ it, which keeps the test independent. Search Console fails that test, because th
 it as a source, and it only covers searches where the site already appears. About one in five
 "People also ask" questions are not from buyers (do-it-yourself tips, or other businesses pricing
 their own work), and the tool filters those out anyway, so counting them would blur the number
-that matters.
+that matters. The target sits above what autocomplete reached alone on the first test (about
+75%), so passing it needs a second source to add real questions, and below 90%, which would leave
+too little room for the scorer's own error of about 10%.
 
 ## 2026-10-28: The collector uses autocomplete and Search Console; web search is optional
 
