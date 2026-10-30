@@ -5,15 +5,16 @@ decided when the build reaches it, using what the earlier parts showed. A decide
 page, and its choice is in [decisions.md](decisions.md).
 
 Decided so far: where questions come from, the backend language and its tooling, how the
-pipeline calls Claude, traces, and two constraints behind every option below (free software and
-data only; AI through Claude Code). Crawling is always polite: robots.txt, rate limits and an
-honest crawler name.
+pipeline calls Claude, which model does each step, traces, how runs are stored, how evals work,
+the command-line shape, and two constraints behind every option below (free software and data
+only; AI through Claude Code). Crawling is always polite: robots.txt, rate limits and an honest
+crawler name.
 
 Sites are read in rungs (see [decisions.md](decisions.md)), so not every part is needed at once.
-The first version, at rung 1 (sitemap), needs grouping (8), the Claude model per step (9),
-storage (10), evals (11), app shape (12) and the frontend (13). The crawler and JavaScript pages
-(1, 2) join at rung 2. Text extraction, splitting and passage search (3 to 5) join at rung 3. The
-embedding model and vector storage (6, 7) join at rung 3, or at rung 1 if grouping uses embeddings.
+The first version, at rung 1 (sitemap), needs grouping (8) and a viewer (9). The crawler and
+JavaScript pages (1, 2) join at rung 2. Text extraction, splitting and passage search (3 to 5) join
+at rung 3. The embedding model and vector storage (6, 7) join at rung 3, or at rung 1 if grouping
+uses embeddings.
 
 Facts below came from web research on 2026-10-23. Some are not verified yet: a few model
 licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a subscription.
@@ -96,43 +97,7 @@ first.
 | **C. BERTopic** | All in one: groups and names topics. | Hides its settings, and results change between runs. |
 | **D. Claude groups them directly** | No embeddings needed. Names come out in the same step. | Hard with thousands of questions at once, and less stable across runs. |
 
-## 9. Which Claude model per step
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. Haiku for bulk steps, Sonnet or Opus for hard ones** | Uses the plan's weekly limit slowly. | Two models to compare in the evals. |
-| **B. Sonnet everywhere** | One setting, strong quality. | Uses more of the limit. |
-| **C. Opus everywhere** | Best quality. | Uses the limit fastest, and is slower. |
-
-## 10. Storing runs and caching
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. SQLite** for the cache and working data, plus one JSON file per run for the viewer | Built into Python. One file. Re-runs reuse cached pages and AI replies. | Some SQL to write. |
-| **B. JSON files only** | Simplest, easy to read. | Gets messy as a cache. |
-| **C. DuckDB** | Great for analysis. | Not needed at this size. |
-| **D. Postgres** | Standard for a hosted service later. | A server to run, for nothing now. |
-
-## 11. Evals
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. pytest plus one script** that writes the scores into the README | Smallest, all readable. | We build the report format ourselves. |
-| **B. Inspect** (UK AI Security Institute, MIT) | Good log viewer for AI-graded tests. | A framework to learn. |
-| **C. promptfoo** | Popular, config-driven. | Now owned by OpenAI, with an uncertain future. |
-
-Ruled out:
-- **Ragas and DeepEval:** their scores are AI-graded and opaque, which doesn't fit tests against
-  labels made by hand.
-
-## 12. App shape
-
-| Option | Pros | Cons |
-|---|---|---|
-| **A. A command-line tool writes files, and a static React viewer reads them** | Fewest moving parts. The demo can be hosted free on GitHub Pages. | No starting runs or labelling from the browser. |
-| **B. A local API server plus a React app** | Start runs and label in the browser. | A server, two processes, more code. |
-
-## 13. Frontend libraries
+## 9. Frontend libraries
 
 | Area | Options |
 |---|---|

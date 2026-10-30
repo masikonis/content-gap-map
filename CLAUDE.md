@@ -23,7 +23,8 @@
 - `docs/decisions.md`: every current decision and why. Read it before changing behaviour.
 - `docs/architecture.md`: the parts not decided yet, with their options.
 - `src/cgm/cli.py`: the `cgm` command and its steps.
-- `src/cgm/client.py`: loads `private/<client>/client.toml` (template: `examples/client.example.toml`).
+- `src/cgm/client.py`: loads a client file (template: `examples/client.example.toml`) and refuses
+  an unknown site type.
 - `src/cgm/profiles.py`: site-type profiles (services, b2b-software, generic): autocomplete
   expansion words, the buyer-question rule, and predicted-question angles.
 - `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
@@ -48,24 +49,37 @@
 ```
 uv run pytest                          # tests
 uv run cgm autocomplete <client>       # starts a new run folder
-uv run cgm searchconsole <client>      # merges private/<client>/search-console/*.zip into the latest run
+uv run cgm searchconsole <client>      # merges the client's Search Console zips into the latest run
 uv run cgm websearch <client>          # optional: adds to the latest run (or --run <name>)
-uv run cgm predicted <client>          # optional: predicted AI-assistant questions, never counted as demand
+uv run cgm predicted <client>          # optional: predicted AI-style questions, never demand
 uv run cgm score <client>              # scores the latest run against the answer key
 ```
 
-## Private data layout (gitignored)
+## Data layout
+
+Client data lives under `private/` (gitignored); the public demo uses the same layout under
+`demo/<name>/`.
 
 ```
-private/blocklist.txt                  terms the local pre-commit hook refuses to commit
-private/<client>/client.toml           sites, seeds, language, country, site type
-private/<client>/decisions.md          decisions and findings about this client
-private/<client>/answer-key/           "People also ask" questions, and buyer-tags.csv
-private/<client>/search-console/       Search Console export zips, one per filter
-private/<client>/runs/<date-time>/     autocomplete.csv, responses/, searchconsole.csv, websearch.csv, predicted.csv, trace.jsonl,
-                                       ai-demand.md, score.csv, score-summary.json, disagreements.csv,
-                                       reviewed.csv
+private/blocklist.txt          terms the local pre-commit hook refuses to commit
+<client>/client.toml           sites, seeds, language, country, site type
+<client>/decisions.md          decisions and findings about this client (private clients only)
+<client>/answer-key/           "People also ask" questions, and buyer-tags.csv
+<client>/search-console/       Search Console export zips, one per filter (own site only)
+<client>/runs/<date-time>/     one folder per run:
+    autocomplete.csv, responses/       collected suggestions and Google's raw replies
+    searchconsole.csv, ai-demand.md    Search Console queries and the client-facing AI summary
+    websearch.csv, predicted.csv       optional sources
+    score.csv, score-summary.json,     verdicts, summary and judge disagreements
+    disagreements.csv
+    trace.jsonl                        every Claude call
+    reviewed.csv, reviewed-summary.json   the reviewed verdicts, once a review is done
+    first-score/                       a score kept as published, when a later one replaces it
 ```
+
+`reviewed.csv` needs `question` and `found` (True or False) on every row. Optional columns:
+`buyer` (the reviewed tag), `sources` (which sources the review covered, joined with "; ";
+autocomplete if absent), and the evidence and notes behind each change.
 
 ## Code conventions
 

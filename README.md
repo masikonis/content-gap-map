@@ -57,12 +57,12 @@ email marketing for small business).
 the honest range is roughly 60% to 90%, so this is one encouraging data point, not proof. It is one
 run, on one market, against one snapshot of Google's results.
 
-**What was measured.** The tool collected 1,473 unique Google autocomplete phrases (305 requests,
-11 minutes). The answer key is the 57 unique questions in Google's "People also ask" box for the same
+**What was measured.** The tool collected 1,473 unique Google autocomplete phrases (305 requests, 11
+minutes). The answer key is the 57 unique questions in Google's "People also ask" box for the same
 seeds, collected on 2026-10-30 in a real Chrome session, signed in to Google and set to US English,
 so the results may be personalised. 35 of them are buyer questions: ones a person asks while
-choosing, buying or switching email software, including whether the channel is worth it and
-which tools to compare. The rest, such as "What is the 12 second rule for emails?", are left out.
+choosing, buying or switching email software, including whether the channel is worth it and which
+tools to compare. The rest, such as "What is the 12 second rule for emails?", are left out.
 
 **How it was checked.**
 - The setup and answer key were committed before the run
@@ -98,11 +98,12 @@ published 74% stays the reviewed figure.
 
 ## Status
 
-Early. Milestone 1 sits on its target line on the public demo (above). Question collection (Google autocomplete, and Search Console for
-your own site) and its scorer are built, with Claude web search as an optional extra source;
-grouping, site reading and the report are not. It is built in public, one step at a time. The
-choices made so far and the reasons for them are in [docs/decisions.md](docs/decisions.md); the
-parts still open, with their options, are in [docs/architecture.md](docs/architecture.md).
+Early. Milestone 1 sits on its target line on the public demo (above). Question collection
+(Google autocomplete, and Search Console for your own site) and its scorer are built, with Claude
+web search and predicted questions as optional extras. Grouping, site reading and the report are
+not built yet. It is built in public, one step at a time. The choices made so far and the reasons
+for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with their options,
+are in [docs/architecture.md](docs/architecture.md).
 
 ## Run it
 
@@ -113,9 +114,9 @@ commands, using `demo/email-marketing` in place of a name.
 
 ```
 uv run cgm autocomplete <name>   # collect autocomplete suggestions into a new run
-uv run cgm searchconsole <name>  # add your Search Console exports from private/<name>/search-console/
-uv run cgm websearch <name>      # optional: add questions people wrote online, checked on their pages
-uv run cgm predicted <name>      # optional: predicted questions people ask AI assistants, scored apart
+uv run cgm searchconsole <name>  # add your own Search Console exports (see CLAUDE.md)
+uv run cgm websearch <name>      # optional: questions people wrote online, checked on the page
+uv run cgm predicted <name>      # optional: predicted AI-assistant questions, scored apart
 uv run cgm score <name>          # score the run against an answer key in private/<name>/answer-key/
 ```
 

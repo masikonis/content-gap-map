@@ -147,11 +147,11 @@ questions people wrote out in full, each verified on its page.
 
 **Alternatives:** the Search Console API (needs a Google Cloud login setup, more than an internal
 tool is worth; the export is a few clicks); one export of every query (hits the 1,000 cap and cuts
-off the rare searches); web search on by default; cutting web search entirely; Bing autocomplete; the
-Stack Exchange and Hacker News APIs; the WildChat dataset of real AI chats; Google driven through
-a browser; questions written by Claude and kept only if autocomplete confirms them. Ruled out:
-scraping "People also ask" (Google's robots.txt disallows it), Reddit (closed to new developers),
-Quora and review sites (their terms forbid scraping), and paid search data APIs.
+off the rare searches); web search on by default; cutting web search entirely; Bing autocomplete;
+the Stack Exchange and Hacker News APIs; the WildChat dataset of real AI chats; Google driven
+through a browser; questions written by Claude and kept only if autocomplete confirms them. Ruled
+out: scraping "People also ask" (Google's robots.txt disallows it), Reddit (closed to new
+developers), Quora and review sites (their terms forbid scraping), and paid search data APIs.
 
 **Why:** a source has to earn its place in the score. On the first scored test, autocomplete alone
 found 73% of the answer key's buyer questions. Web search, limited to pages that can be verified,
@@ -386,3 +386,50 @@ margin of error, an overstated claim about the misses, paraphrased questions cou
 need to disclose a signed-in browser. Checking misses against the full phrase list exposed a scorer
 flaw the judges could not see. Keeping the stricter call where reviewers disagree stops a review
 from leaning toward a higher score.
+
+## 2026-10-30: Which Claude model does each step
+
+**Chose:** Sonnet tags buyer questions, writes predicted questions, runs web search and is the main
+judge. Opus is the second judge, run once per score to flag verdicts for review. Each module names
+its model in a constant at the top.
+
+**Alternatives:** Haiku for bulk steps; Sonnet everywhere; Opus everywhere.
+
+**Why:** measured on a reviewed run, Sonnet with numbered phrases judged as accurately as Opus at
+less than half the subscription usage, and it errs strict where Opus errs generous. Opus earns its
+place as the second judge, because its different mistakes are what make disagreements worth a
+person's look. Haiku was the weaker judge in every comparison.
+
+## 2026-10-30: A run is a folder of plain files
+
+**Chose:** each run is a folder named by date and time. Every step writes its own plain files
+there: CSV for tables, JSON for summaries, JSON lines for traces, and the raw replies from Google.
+No database and no cache.
+
+**Alternatives:** SQLite as a cache and store; DuckDB; Postgres.
+
+**Why:** a run holds a few thousand rows, so plain files are fast enough, readable in any editor or
+spreadsheet, and diffable in git, which is how the public demo's results are published. Runs are
+rare and each one is kept, so a cache would save little.
+
+## 2026-10-30: Evals are the scorer plus a reviewed set; pytest tests the code
+
+**Chose:** each milestone is measured by a `cgm` step (milestone 1: `cgm score`) against an answer
+key, with a reviewed verdict file (`reviewed.csv`) as its ground truth once a review is done.
+pytest checks the code on made-up data and never calls a live service.
+
+**Alternatives:** Inspect (UK AI Security Institute); promptfoo; Ragas or DeepEval.
+
+**Why:** the score has to be readable end to end and published in the README, and a small scorer
+does that with nothing to learn. Ragas and DeepEval grade with opaque AI metrics, which don't fit
+tests against verdicts a reviewer can check line by line.
+
+## 2026-10-30: The tool is a command-line program that writes files
+
+**Chose:** `cgm` runs each step from the command line and writes files into the run folder. A
+viewer, when it comes, reads those files.
+
+**Alternatives:** a local web server with a browser app that starts runs and records reviews.
+
+**Why:** fewest moving parts, and the files are the record. A server would only pay off once
+reviewing in a browser is needed often.
