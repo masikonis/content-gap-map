@@ -51,7 +51,8 @@ parts still open, with their options, are in [docs/architecture.md](docs/archite
 
 You need [uv](https://docs.astral.sh/uv/) and [Claude Code](https://claude.com/claude-code).
 Copy `examples/client.example.toml` to `private/<name>/client.toml` and fill it in. The
-`private/` folder is never committed.
+`private/` folder is never committed. The public demo in `demo/email-marketing/` runs with the same
+commands, using `demo/email-marketing` in place of a name.
 
 ```
 uv run cgm autocomplete <name>   # collect autocomplete suggestions into a new run

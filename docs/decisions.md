@@ -343,3 +343,20 @@ measured. The rest can only be predicted, and a prediction must never be scored 
 the first test the predicted questions covered most of the conversational "why" and "what
 happens if" questions the real sources missed, but the prompt's angles were chosen after seeing
 those misses, so that result is optimistic until it holds on a site it wasn't tuned on.
+
+## 2026-10-30: The public demo: Mailchimp vs Brevo and MailerLite
+
+**Chose:** the public test set is email marketing software: Mailchimp as the primary site, Brevo
+and MailerLite as competitors, with the B2B software profile and five short seeds (email
+marketing software, newsletter software, email automation, transactional email, email marketing
+for small business). Everything lives in `demo/email-marketing/` and is public: the client file,
+the answer key, the collected data and the scores. The setup and the answer key were committed
+before the first run, the run is scored once, and the result is published as it comes out.
+
+**Alternatives:** project management (Asana vs monday.com and ClickUp); online scheduling
+(Calendly vs Acuity Scheduling and Cal.com); a client's site, which can't be published.
+
+**Why:** the lab's readers are marketers, so this category speaks to them; its buyer questions are
+about choosing and paying for software, which is what the B2B software profile claims to handle;
+and no part of that profile was written from this category, so it is a fair test. Fixing the test
+in git before running it shows the result wasn't picked after the fact.

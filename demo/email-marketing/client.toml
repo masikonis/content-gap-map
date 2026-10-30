@@ -1,0 +1,25 @@
+# Public demo: every site and every piece of data here is public.
+name = "Mailchimp vs Brevo and MailerLite"
+site_type = "b2b-software"
+language = "en"
+country = "us"
+
+seeds = [
+  "email marketing software",
+  "newsletter software",
+  "email automation",
+  "transactional email",
+  "email marketing for small business",
+]
+
+[primary]
+name = "Mailchimp"
+url = "https://mailchimp.com"
+
+[[competitors]]
+name = "Brevo"
+url = "https://www.brevo.com"
+
+[[competitors]]
+name = "MailerLite"
+url = "https://www.mailerlite.com"

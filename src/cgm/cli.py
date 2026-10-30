@@ -12,18 +12,20 @@ def main() -> None:
     steps = parser.add_subparsers(dest="step", required=True)
 
     step = steps.add_parser("autocomplete", help="collect Google autocomplete suggestions (starts a new run)")
-    step.add_argument("client", help="client folder name under private/")
+    step.add_argument("client", help="client folder under private/, or a path such as demo/email-marketing")
 
     for name, help_text in [("searchconsole", "import Search Console exports into a run"),
                             ("websearch", "find questions people wrote online, and verify them"),
                             ("predicted", "predict questions buyers ask AI assistants (never counted as demand)"),
                             ("score", "score a run against the answer key")]:
         step = steps.add_parser(name, help=help_text)
-        step.add_argument("client", help="client folder name under private/")
+        step.add_argument("client", help="client folder under private/, or a path such as demo/email-marketing")
         step.add_argument("--run", help="run folder name (default: the latest run)")
 
     args = parser.parse_args()
-    client = load_client(Path("private") / args.client)
+    # A bare name is a private client folder; a path (such as demo/email-marketing) is used as is.
+    where = Path(args.client) if "/" in args.client else Path("private") / args.client
+    client = load_client(where)
     if args.step == "autocomplete":
         autocomplete.run(client)
         return

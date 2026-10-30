@@ -39,6 +39,8 @@
   every call appends a line to the run's `trace.jsonl`.
 - `src/cgm/score.py`: milestone 1 scorer. Seed-word shortlists per question, buyer tags, two
   judges, per-source shares, accuracy against reviewed verdicts.
+- `demo/email-marketing/`: the public demo (Mailchimp vs Brevo and MailerLite). Public data only;
+  every command takes `demo/email-marketing` in place of a client name.
 - `tests/`: made-up data only, never a live service.
 
 ## Running it
