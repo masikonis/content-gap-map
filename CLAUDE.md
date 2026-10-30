@@ -27,6 +27,9 @@
 - `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
 - `src/cgm/searchconsole.py`: imports Search Console CSV exports (client's own site only) into a
   run. Exports are made by hand or with the Chrome connector, one per filter, each under 1,000 rows.
+  Marks queries that look typed by an AI assistant (`ai_style`).
+- `src/cgm/predicted.py`: Claude-written questions in the way people ask AI assistants. Saved apart
+  and never counted as demand.
 - `src/cgm/websearch.py`: optional source, off by default. Claude web search for questions people
   wrote, then a plain-code check that each question is on its page.
 - `src/cgm/claude.py`: the only place Claude is called. Trimmed `claude -p` with a JSON schema;
@@ -42,6 +45,7 @@ uv run pytest                          # tests
 uv run cgm autocomplete <client>       # starts a new run folder
 uv run cgm searchconsole <client>      # merges private/<client>/search-console/*.zip into the latest run
 uv run cgm websearch <client>          # optional: adds to the latest run (or --run <name>)
+uv run cgm predicted <client>          # optional: predicted AI-assistant questions, never counted as demand
 uv run cgm score <client>              # scores the latest run against the answer key
 ```
 
@@ -53,7 +57,7 @@ private/<client>/client.toml           sites, seeds, language, country, site typ
 private/<client>/decisions.md          decisions and findings about this client
 private/<client>/answer-key/           "People also ask" questions, and buyer-tags.csv
 private/<client>/search-console/       Search Console export zips, one per filter
-private/<client>/runs/<date-time>/     autocomplete.csv, responses/, searchconsole.csv, websearch.csv, trace.jsonl,
+private/<client>/runs/<date-time>/     autocomplete.csv, responses/, searchconsole.csv, websearch.csv, predicted.csv, trace.jsonl,
                                        score.csv, score-summary.json, disagreements.csv, reviewed.csv
 ```
 

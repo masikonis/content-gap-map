@@ -306,3 +306,25 @@ such sites and prefers the client's country. The URLs come from web content, so 
 refuses private and local addresses and caps what it reads. Questions that still can't be checked
 are reported apart rather than dropped. Reporting each source's own share and its
 unique finds is how a source shows it earns its place.
+
+## 2026-10-30: Questions asked to AI assistants: AI searches counted, predictions kept apart
+
+**Chose:**
+- **AI searches in Search Console:** a query counts as typed by an AI assistant searching for
+  someone if it uses search commands people don't type (`filetype:`, `site:`, quotes), starts like
+  a prompt ("context:", "question:"), or runs to 10 words or more. These are real demand and score
+  as their own source, and the import reports the share of impressions they carry.
+- **Predicted questions:** Claude writes 25 questions per seed in the way people talk to an
+  assistant (`cgm predicted`). They are saved apart, reported as "with predicted", and never count
+  in the headline score or toward the milestone target.
+
+**Alternatives:** an AI-side answer key built from the follow-up questions AI assistants suggest
+(dropped: Perplexity asks for an account after one search, Google AI Mode suggests no follow-ups,
+and ChatGPT needs an account); paid prompt-volume products; ignoring AI assistants.
+
+**Why:** fewer people type short searches; more ask assistants in full sentences, and what they
+type there is private. The assistants' own searches do reach Search Console, so that part can be
+measured. The rest can only be predicted, and a prediction must never be scored as demand. On
+the first test the predicted questions covered most of the conversational "why" and "what
+happens if" questions the real sources missed, but the prompt's angles were chosen after seeing
+those misses, so that result is optimistic until it holds on a site it wasn't tuned on.

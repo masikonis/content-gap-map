@@ -2,17 +2,26 @@
 
 Search Console's own "Export > Download CSV" gives a zip per filtered view, capped at 1,000
 queries. Exports for a client go in private/<client>/search-console/, one per filter, each under
-the cap. This step merges their Queries.csv files into the run's searchconsole.csv.
+the cap. This step merges their Queries.csv files into the run's searchconsole.csv, and marks the
+queries that look typed by an AI assistant searching on someone's behalf rather than by a person.
 """
 
 import csv
 import io
+import re
 import zipfile
 from pathlib import Path
 
 from cgm.client import Client
 
 CAP = 1000
+AI_COMMANDS = re.compile(r'(-?filetype:|intitle:|inurl:|-?site:|"|^context:|^question:)')
+AI_LENGTH = 10
+
+
+def ai_style(query: str) -> bool:
+    """People rarely type search commands or ten-word searches; assistants searching for them do."""
+    return bool(AI_COMMANDS.search(query)) or len(query.split()) >= AI_LENGTH
 
 
 def read_export(path: Path) -> list[dict]:
@@ -34,9 +43,13 @@ def run(client: Client, run_folder: Path) -> None:
         for r in export:
             if r["query"] not in seen:
                 seen.add(r["query"])
-                rows.append(r)
+                rows.append({**r, "ai": ai_style(r["query"])})
     with open(run_folder / "searchconsole.csv", "w", newline="") as f:
-        writer = csv.DictWriter(f, ["query", "clicks", "impressions", "position", "export"])
+        writer = csv.DictWriter(f, ["query", "clicks", "impressions", "position", "ai", "export"])
         writer.writeheader()
         writer.writerows(rows)
-    print(f"Done: {len(rows)} unique queries saved to {run_folder / 'searchconsole.csv'}")
+    ai = [r for r in rows if r["ai"]]
+    impressions = sum(int(r["impressions"]) for r in rows) or 1
+    print(f"Done: {len(rows)} unique queries, {len(ai)} AI-style, carrying "
+          f"{sum(int(r['impressions']) for r in ai) / impressions:.0%} of impressions.")
+    print(f"Saved to {run_folder / 'searchconsole.csv'}")

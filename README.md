@@ -57,6 +57,7 @@ Copy `examples/client.example.toml` to `private/<name>/client.toml` and fill it 
 uv run cgm autocomplete <name>   # collect autocomplete suggestions into a new run
 uv run cgm searchconsole <name>  # add your Search Console exports from private/<name>/search-console/
 uv run cgm websearch <name>      # optional: add questions people wrote online, checked on their pages
+uv run cgm predicted <name>      # optional: predicted questions people ask AI assistants, scored apart
 uv run cgm score <name>          # score the run against an answer key in private/<name>/answer-key/
 ```
 

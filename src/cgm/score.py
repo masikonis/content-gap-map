@@ -53,9 +53,10 @@ Questions:
 Phrases:
 {phrases}"""
 
-SOURCES = {"autocomplete": "autocomplete", "searchconsole": "searchconsole", "websearch": "websearch",
-           "websearch-unverified": "websearch, unverified"}
-VERIFIED = {"autocomplete", "searchconsole", "websearch"}
+SOURCES = {"autocomplete": "autocomplete", "searchconsole": "searchconsole",
+           "searchconsole-ai": "searchconsole, AI searches", "websearch": "websearch",
+           "websearch-unverified": "websearch, unverified", "predicted": "predicted"}
+VERIFIED = {"autocomplete", "searchconsole", "searchconsole-ai", "websearch"}
 
 TAG_SCHEMA = {
     "type": "object",
@@ -100,7 +101,10 @@ def load_collected(run: Path) -> tuple[list[str], dict[str, set[str]]]:
         sources[row["suggestion"]].add("autocomplete")
     if (run / "searchconsole.csv").exists():
         for row in csv.DictReader(open(run / "searchconsole.csv")):
-            sources[row["query"]].add("searchconsole")
+            sources[row["query"]].add("searchconsole-ai" if row.get("ai") == "True" else "searchconsole")
+    if (run / "predicted.csv").exists():
+        for row in csv.DictReader(open(run / "predicted.csv")):
+            sources[row["question"]].add("predicted")
     if (run / "websearch.csv").exists():
         for row in csv.DictReader(open(run / "websearch.csv")):
             sources[row["question"]].add("websearch" if row["verified"] == "True" else "websearch-unverified")
@@ -271,13 +275,18 @@ def summarize(passes: dict[str, list[dict]], tags: dict[str, dict],
     buyers = [r for r in first if tags[r["question"]]["buyer"]]
     by = {label: lambda r, w=wanted: found_by(r, sources, w)
           for label, wanted in [("all sources", VERIFIED),
-                                ("all sources, with unverified", set(SOURCES)),
+                                ("all sources, with unverified", VERIFIED | {"websearch-unverified"}),
+                                ("all sources, with predicted", VERIFIED | {"predicted"}),
                                 ("autocomplete", {"autocomplete"}),
                                 ("searchconsole", {"searchconsole"}),
+                                ("searchconsole, AI searches", {"searchconsole-ai"}),
                                 ("websearch", {"websearch"}),
-                                ("websearch, with unverified", {"websearch", "websearch-unverified"})]}
+                                ("websearch, with unverified", {"websearch", "websearch-unverified"}),
+                                ("predicted", {"predicted"})]}
     single = {"autocomplete": {"autocomplete"}, "searchconsole": {"searchconsole"},
-              "websearch, with unverified": {"websearch", "websearch-unverified"}}
+              "searchconsole, AI searches": {"searchconsole-ai"},
+              "websearch, with unverified": {"websearch", "websearch-unverified"},
+              "predicted": {"predicted"}}
     only = {label: [r["question"] for r in buyers if found_by(r, sources, mine)
                     and not found_by(r, sources, set(SOURCES) - mine)]
             for label, mine in single.items()}
