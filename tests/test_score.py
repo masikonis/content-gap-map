@@ -73,15 +73,16 @@ def test_accuracy_counts_only_reviewed_questions():
     assert accuracy(rows, {"a": True, "b": True}) == 0.5
 
 
-def test_shortlists_keep_phrases_with_each_seeds_most_specific_word():
+def test_shortlists_keep_seed_phrases_plus_close_wordings():
     from cgm.score import shortlists
     phrases = ["piano lessons cost", "piano lessons near me", "piano tuning",
-               "guitar lessons cost", "violin lessons"]
+               "guitar lessons cost", "violin lessons", "cheapest music teacher"]
     key = {"How much do piano lessons cost?": ["piano lessons"],
-           "Is guitar harder than piano?": ["guitar lessons"]}
+           "Who is the cheapest music teacher?": ["piano lessons"]}
     lists = shortlists(key, phrases, ["piano lessons", "guitar lessons"])
-    # "piano" is rarer than "lessons", so it picks the piano phrases only.
-    assert lists["How much do piano lessons cost?"] == ["piano lessons cost", "piano lessons near me", "piano tuning"]
-    # The second question's own seed adds "guitar"; its text mentions piano, so piano joins too.
-    assert lists["Is guitar harder than piano?"] == ["guitar lessons cost", "piano lessons cost",
-                                                     "piano lessons near me", "piano tuning"]
+    base, extra = lists["How much do piano lessons cost?"]
+    # "piano" is rarer than "lessons", so the seed list holds the piano phrases only.
+    assert base == ("piano lessons cost", "piano lessons near me", "piano tuning")
+    # A close wording without the seed's word still reaches the judge through the extras.
+    assert "cheapest music teacher" in lists["Who is the cheapest music teacher?"][1]
+    assert "cheapest music teacher" not in lists["Who is the cheapest music teacher?"][0]

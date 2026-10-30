@@ -85,12 +85,16 @@ easiest way to create a newsletter, and whether email marketing is declining.
 
 **A flaw the review found.** The scorer shortlists phrases before judging, keyed on the most specific
 word of each seed. For two seeds it picked a generic word ("software", "business"), so it dropped two
-phrases that were clearly matches, such as "cheapest email marketing". The review caught both; the
-scorer still needs fixing.
+phrases that were clearly matches, such as "cheapest email marketing". The review caught both. The
+scorer now also adds the 100 phrases closest to each question. Rescored with that fix, the judges'
+first pass agrees with the reviewed verdicts on 33 of the 35 buyer questions. The two it doesn't
+are the borderline calls where the review chose the stricter answer ("Is email marketing
+declining?" and "Is there a better option than Mailchimp?"), so the judges alone now read 80%. The
+published 74% stays the reviewed figure.
 
 **Cost.** 42 Claude calls, about 290,000 tokens, under 5 minutes of model time, $1.42 at list price
 (covered by a Claude subscription). Every call is in
-[trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/trace.jsonl).
+[trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/first-score/trace.jsonl).
 
 ## Status
 

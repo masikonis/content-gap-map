@@ -239,8 +239,9 @@ Agent SDK normally needs a paid API key.
   is a phrase whose answer would only cover the question along the way.
 - **What it compares:** each unique answer-key question against a shortlist of what the sources
   found: every phrase containing the most specific word (the one fewest phrases use) of one of the
-  question's seeds, or of a seed whose word the question mentions. Questions that share a
-  shortlist are judged together, 15 per call.
+  question's seeds, or of a seed whose word the question mentions, plus the 100 phrases that share
+  the most words with the question itself, rare words counting more. Questions that share a seed
+  list are judged together, 5 per call.
 - **Buyer tags:** each question is tagged once as a buyer question or not (Sonnet), and the tags
   are saved beside the answer key so every later score uses the same ones.
 - **Proof:** collected phrases are numbered, and every match names the number of the matching
@@ -266,9 +267,12 @@ keeps the score from being inflated by loose topic matches. A question often app
 while its match was collected under another, so checking against everything avoids false misses.
 Stable verdicts are not the same as correct ones: the flip rate shows stability, and the second
 judge points a person at the verdicts most likely to be wrong, which keeps the review short.
-Known flaw: the shortlist keys each seed on its rarest word, and for seeds like "email marketing
-software" that word is generic ("software"), so right phrases can be dropped before judging. The
-first public demo lost two matches this way; it needs fixing before the next scored run.
+The seed list alone keys each seed on its rarest word, and for seeds like "email marketing
+software" that word is generic ("software"), so right phrases were dropped before judging: the
+first public demo lost two matches this way. Adding the 100 closest phrases per question fixes it:
+measured against both reviewed sets, the shortlist then kept every confirmed match (56 of 56 and
+26 of 26) with lists only slightly longer. Using the seeds' two rarest words also kept them all but
+doubled the lists; dropping the shortlist did too, at the cost of long lists the judges handle worse.
 Measured against a reviewed run: with phrases quoted as text, Sonnet was right on 83 to 89% of
 verdicts and Opus on 96%, because Sonnet missed obvious matches in long lists and miscopied
 phrases. Numbering the phrases brought Sonnet to 92% and Opus to 91 to 94%, and most of Opus's

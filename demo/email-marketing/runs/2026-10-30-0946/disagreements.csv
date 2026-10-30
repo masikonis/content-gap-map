@@ -1,2 +1,4 @@
 question,buyer,sonnet found,sonnet match,sonnet reason,opus found,opus match,opus reason
-What's the cheapest email marketing?,True,True,cheap emails for business,Cheap email marketing cost phrase matches cheapest option.,False,,"Phrases cover cost or free tools, not cheapest option."
+What is the easiest way to create a newsletter?,True,False,,No phrase asks about the easiest way or easiest newsletter creation.,True,easiest email marketing platform to use | easiest email marketing software,Asking for the easiest email platform is close to asking for the easiest newsletter tool.
+What are five examples of automation?,False,True,email automation examples | email automations examples,Email automation examples phrases match request for examples.,False,,Question is about automation in general; the phrases cover only email.
+What are the three types of emails?,False,False,,No phrase asks the three types of emails.,True,types of email categories,Phrase asks what the general categories of email are.

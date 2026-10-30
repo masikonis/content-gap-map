@@ -1,14 +1,15 @@
 """Score a collector run against the answer key ("People also ask").
 
 Each unique answer-key question is checked against a shortlist of what the sources found: every
-phrase that contains the most specific word of one of the question's seeds. Each match is
-credited to the sources that found it. Questions are tagged once as buyer questions or not, and the headline score counts buyer
+phrase that contains the most specific word of one of the question's seeds, plus the phrases that
+share the most words with the question itself. Each match is credited to the sources that found it. Questions are tagged once as buyer questions or not, and the headline score counts buyer
 questions only. Two passes by the main judge measure how often verdicts flip, and one pass by a
 second judge shows where the two disagree, for a person to review.
 """
 
 import csv
 import json
+import math
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -21,6 +22,8 @@ JUDGE = "sonnet"
 SECOND_JUDGE = "opus"
 TAGGER = "sonnet"
 BATCH = 15
+JUDGE_BATCH = 5
+OVERLAP = 100
 
 MATCH_SCHEMA = {
     "type": "object",
@@ -173,33 +176,46 @@ def words(text: str) -> set[str]:
     return {stem(w) for w in re.findall(r"\w+", text.lower())}
 
 
-def shortlists(key: dict[str, list[str]], phrases: list[str], seeds: list[str]) -> dict[str, list[str]]:
-    """For each question, the phrases containing the most specific word (the one fewest phrases
-    use) of any of its seeds, or of any seed whose word the question itself contains."""
+def shortlists(key: dict[str, list[str]], phrases: list[str],
+               seeds: list[str]) -> dict[str, tuple[tuple[str, ...], set[str]]]:
+    """For each question, a seed list and its own extras.
+
+    The seed list holds the phrases containing the most specific word (the one fewest phrases use)
+    of any of its seeds, or of any seed whose word the question itself contains. The extras are the
+    OVERLAP phrases sharing the most words with the question, rare words counting more, which catch
+    close wordings that lack the seed's word ("cheapest email marketing" for a seed keyed on
+    "software")."""
     phrase_words = {p: words(p) for p in phrases}
     df = Counter(w for ws in phrase_words.values() for w in ws)
+    idf = {w: math.log(len(phrases) / n) for w, n in df.items()}
     seed_word = {s: min(sorted(words(s)), key=lambda w: df[w]) for s in seeds}
     by_seed = {s: {p for p in phrases if w in phrase_words[p]} for s, w in seed_word.items()}
     lists = {}
     for question, own in key.items():
-        question_seeds = set(own) | {s for s, w in seed_word.items() if w in words(question)}
-        lists[question] = sorted(set().union(*(by_seed[s] for s in question_seeds if s in by_seed)))
+        qw = words(question)
+        question_seeds = set(own) | {s for s, w in seed_word.items() if w in qw}
+        base = tuple(sorted(set().union(*(by_seed[s] for s in question_seeds if s in by_seed))))
+        scored = sorted(((sum(idf.get(w, 0) for w in qw & phrase_words[p]), p) for p in phrases),
+                        key=lambda x: (-x[0], x[1]))
+        lists[question] = (base, {p for score, p in scored[:OVERLAP] if score > 0})
     return lists
 
 
-def judge(questions: list[str], lists: dict[str, list[str]], model: str, trace: Path,
-          label: str) -> list[dict]:
-    """Questions that share a shortlist are judged together, 15 per call."""
+def judge(questions: list[str], lists: dict[str, tuple[tuple[str, ...], set[str]]], model: str,
+          trace: Path, label: str) -> list[dict]:
+    """Questions that share a seed list are judged together, JUDGE_BATCH per call, against that
+    list plus each question's extras."""
     groups = defaultdict(list)
     for q in questions:
-        groups[tuple(lists[q])].append(q)
+        groups[lists[q][0]].append(q)
     verdicts, n = {}, 0
-    for phrases, group_questions in groups.items():
-        for group in batches(group_questions):
+    for base, group_questions in groups.items():
+        for group in [group_questions[i:i + JUDGE_BATCH] for i in range(0, len(group_questions), JUDGE_BATCH)]:
             n += 1
-            prompt = MATCH_PROMPT.format(questions=numbered(group), phrases=numbered(list(phrases)))
+            phrases = sorted(set(base).union(*(lists[q][1] for q in group)))
+            prompt = MATCH_PROMPT.format(questions=numbered(group), phrases=numbered(phrases))
             answer = claude.ask(prompt, MATCH_SCHEMA, model, trace, f"{label}, batch {n}")
-            for row in check(answer["results"], group, list(phrases)):
+            for row in check(answer["results"], group, phrases):
                 verdicts[row["question"]] = row
     rows = [verdicts[q] for q in questions]
     print(f"{label}: {sum(r['found'] for r in rows)}/{len(rows)} found", flush=True)
@@ -215,7 +231,7 @@ def run(client: Client, run_folder: Path) -> None:
 
     seeds = list(dict.fromkeys(client.seeds + [s for own in key.values() for s in own]))
     lists = shortlists(key, phrases, seeds)
-    sizes = sorted(len(v) for v in lists.values())
+    sizes = sorted(len(set(base) | extra) for base, extra in lists.values())
     print(f"shortlists: {len(phrases)} phrases, {sizes[0]} to {sizes[-1]} per question", flush=True)
 
     passes = {"judge pass 1": judge(questions, lists, JUDGE, trace, "judge pass 1"),
