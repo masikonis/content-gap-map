@@ -28,7 +28,8 @@
 - `src/cgm/profiles.py`: site-type profiles (services, b2b-software, generic): autocomplete
   expansion words, the buyer-question rule, and predicted-question angles.
 - `src/cgm/fetch.py`: polite, safe web requests for every step: the crawler name, the pause, and
-  `PageFetcher` for untrusted URLs (public addresses only, robots.txt, redirects re-checked, 2 MB cap).
+  `PageFetcher` for untrusted URLs (public addresses only, robots.txt, redirects re-checked,
+  2 MB cap).
 - `src/cgm/files.py`: reads a run's CSV files as UTF-8.
 - `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
 - `src/cgm/searchconsole.py`: imports Search Console CSV exports (client's own site only) into a
