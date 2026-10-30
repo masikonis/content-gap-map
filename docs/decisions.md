@@ -226,8 +226,10 @@ Agent SDK normally needs a paid API key.
   the same question.
 - **The rule:** they match if one answer would satisfy both. Same topic is not enough, and neither
   is a phrase whose answer would only cover the question along the way.
-- **What it compares:** each unique answer-key question against everything the collector found,
-  across all seeds, 15 questions per call.
+- **What it compares:** each unique answer-key question against a shortlist of what the sources
+  found: every phrase containing the most specific word (the one fewest phrases use) of one of the
+  question's seeds, or of a seed whose word the question mentions. Questions that share a
+  shortlist are judged together, 15 per call.
 - **Buyer tags:** each question is tagged once as a buyer question or not (Sonnet), and the tags
   are saved beside the answer key so every later score uses the same ones.
 - **Proof:** collected phrases are numbered, and every match names the number of the matching
@@ -243,8 +245,9 @@ Agent SDK normally needs a paid API key.
 
 **Alternatives:** embedding similarity with a threshold; word overlap in plain code; a "same
 topic" rule; checking each question only against its own seed's suggestions; Opus or Haiku as
-the main judge; matches quoted as text; a plain-code shortlist of candidates before judging; a
-person checking a sample of verdicts without a second judge.
+the main judge; matches quoted as text; every phrase in every call; a shortlist of the phrases
+sharing the most words with each question; a person checking a sample of verdicts without a
+second judge.
 
 **Why:** matching meaning is a judgment call, so it belongs to Claude; word overlap would miss
 most paraphrases and embeddings would need labels we don't have to set a threshold. The strict rule
@@ -260,8 +263,12 @@ remaining errors were generous matches. Adding the "covers it along the way" rul
 passes, so on its own the scorer is about 90% accurate, and a score is only final once a person has
 reviewed the questions where the two judges disagree. With equal accuracy, Sonnet uses less than
 half the subscription limit, and a strict judge understates the score rather than inflating it. A
-shortlist before judging would cut usage further, but a shortlist that drops the right phrase
-causes misses no judge can fix, so it waits until the limit matters.
+judge also misses more as lists grow: adding a second source took each call from about 3,600
+phrases to 5,100, and accuracy fell to 90 to 92%. A shortlist fixes that, but one that drops the
+right phrase causes a miss no judge can fix, so each was tested against the reviewed matches: the
+top 150 phrases by shared words kept only 46 of 56, because hundreds of near-identical phrases
+crowd out the right one and synonyms share no words, while the seed-word shortlist kept 55 of 56
+and cut lists to about 1,300 phrases.
 
 ## 2026-10-28: How the Claude web search source works
 

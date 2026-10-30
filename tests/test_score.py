@@ -70,3 +70,17 @@ def test_accuracy_counts_only_reviewed_questions():
     rows = [{"question": "a", "found": True}, {"question": "b", "found": False},
             {"question": "c", "found": True}]
     assert accuracy(rows, {"a": True, "b": True}) == 0.5
+
+
+def test_shortlists_keep_phrases_with_each_seeds_most_specific_word():
+    from cgm.score import shortlists
+    phrases = ["piano lessons cost", "piano lessons near me", "piano tuning",
+               "guitar lessons cost", "violin lessons"]
+    key = {"How much do piano lessons cost?": ["piano lessons"],
+           "Is guitar harder than piano?": ["guitar lessons"]}
+    lists = shortlists(key, phrases, ["piano lessons", "guitar lessons"])
+    # "piano" is rarer than "lessons", so it picks the piano phrases only.
+    assert lists["How much do piano lessons cost?"] == ["piano lessons cost", "piano lessons near me", "piano tuning"]
+    # The second question's own seed adds "guitar"; its text mentions piano, so piano joins too.
+    assert lists["Is guitar harder than piano?"] == ["guitar lessons cost", "piano lessons cost",
+                                                     "piano lessons near me", "piano tuning"]

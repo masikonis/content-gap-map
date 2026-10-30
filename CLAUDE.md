@@ -31,8 +31,8 @@
   wrote, then a plain-code check that each question is on its page.
 - `src/cgm/claude.py`: the only place Claude is called. Trimmed `claude -p` with a JSON schema;
   every call appends a line to the run's `trace.jsonl`.
-- `src/cgm/score.py`: milestone 1 scorer. Buyer tags, two judges, per-source shares, accuracy
-  against reviewed verdicts.
+- `src/cgm/score.py`: milestone 1 scorer. Seed-word shortlists per question, buyer tags, two
+  judges, per-source shares, accuracy against reviewed verdicts.
 - `tests/`: made-up data only, never a live service.
 
 ## Running it

@@ -1,14 +1,16 @@
 """Score a collector run against the answer key ("People also ask").
 
-Each unique answer-key question is checked against everything every source found in the run,
-across all seeds, and each match is credited to the sources that found it. Questions are tagged once as buyer questions or not, and the headline score counts buyer
+Each unique answer-key question is checked against a shortlist of what the sources found: every
+phrase that contains the most specific word of one of the question's seeds. Each match is
+credited to the sources that found it. Questions are tagged once as buyer questions or not, and the headline score counts buyer
 questions only. Two passes by the main judge measure how often verdicts flip, and one pass by a
 second judge shows where the two disagree, for a person to review.
 """
 
 import csv
 import json
-from collections import defaultdict
+import re
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from cgm import claude
@@ -157,12 +159,46 @@ def found_by(row: dict, sources: dict[str, set[str]], wanted: set[str]) -> bool:
     return any(sources[m] & wanted for m in row["matches"])
 
 
-def judge(questions: list[str], phrases: list[str], model: str, trace: Path, label: str) -> list[dict]:
-    rows = []
-    for n, group in enumerate(batches(questions), 1):
-        prompt = MATCH_PROMPT.format(questions=numbered(group), phrases=numbered(phrases))
-        answer = claude.ask(prompt, MATCH_SCHEMA, model, trace, f"{label}, batch {n}")
-        rows += check(answer["results"], group, phrases)
+def stem(word: str) -> str:
+    for suffix in ("ing", "es", "ed", "s"):
+        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+            return word[:-len(suffix)]
+    return word
+
+
+def words(text: str) -> set[str]:
+    return {stem(w) for w in re.findall(r"\w+", text.lower())}
+
+
+def shortlists(key: dict[str, list[str]], phrases: list[str], seeds: list[str]) -> dict[str, list[str]]:
+    """For each question, the phrases containing the most specific word (the one fewest phrases
+    use) of any of its seeds, or of any seed whose word the question itself contains."""
+    phrase_words = {p: words(p) for p in phrases}
+    df = Counter(w for ws in phrase_words.values() for w in ws)
+    seed_word = {s: min(sorted(words(s)), key=lambda w: df[w]) for s in seeds}
+    by_seed = {s: {p for p in phrases if w in phrase_words[p]} for s, w in seed_word.items()}
+    lists = {}
+    for question, own in key.items():
+        question_seeds = set(own) | {s for s, w in seed_word.items() if w in words(question)}
+        lists[question] = sorted(set().union(*(by_seed[s] for s in question_seeds if s in by_seed)))
+    return lists
+
+
+def judge(questions: list[str], lists: dict[str, list[str]], model: str, trace: Path,
+          label: str) -> list[dict]:
+    """Questions that share a shortlist are judged together, 15 per call."""
+    groups = defaultdict(list)
+    for q in questions:
+        groups[tuple(lists[q])].append(q)
+    verdicts, n = {}, 0
+    for phrases, group_questions in groups.items():
+        for group in batches(group_questions):
+            n += 1
+            prompt = MATCH_PROMPT.format(questions=numbered(group), phrases=numbered(list(phrases)))
+            answer = claude.ask(prompt, MATCH_SCHEMA, model, trace, f"{label}, batch {n}")
+            for row in check(answer["results"], group, list(phrases)):
+                verdicts[row["question"]] = row
+    rows = [verdicts[q] for q in questions]
     print(f"{label}: {sum(r['found'] for r in rows)}/{len(rows)} found", flush=True)
     return rows
 
@@ -174,9 +210,14 @@ def run(client: Client, run_folder: Path) -> None:
     trace = run_folder / "trace.jsonl"
     tags = tag_buyers(client, questions, trace)
 
-    passes = {"judge pass 1": judge(questions, phrases, JUDGE, trace, "judge pass 1"),
-              "judge pass 2": judge(questions, phrases, JUDGE, trace, "judge pass 2"),
-              "second judge": judge(questions, phrases, SECOND_JUDGE, trace, "second judge")}
+    seeds = list(dict.fromkeys(client.seeds + [s for own in key.values() for s in own]))
+    lists = shortlists(key, phrases, seeds)
+    sizes = sorted(len(v) for v in lists.values())
+    print(f"shortlists: {len(phrases)} phrases, {sizes[0]} to {sizes[-1]} per question", flush=True)
+
+    passes = {"judge pass 1": judge(questions, lists, JUDGE, trace, "judge pass 1"),
+              "judge pass 2": judge(questions, lists, JUDGE, trace, "judge pass 2"),
+              "second judge": judge(questions, lists, SECOND_JUDGE, trace, "second judge")}
 
     with open(run_folder / "score.csv", "w", newline="") as f:
         writer = csv.writer(f)
