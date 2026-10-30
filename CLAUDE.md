@@ -27,6 +27,9 @@
   an unknown site type.
 - `src/cgm/profiles.py`: site-type profiles (services, b2b-software, generic): autocomplete
   expansion words, the buyer-question rule, and predicted-question angles.
+- `src/cgm/fetch.py`: polite, safe web requests for every step: the crawler name, the pause, and
+  `PageFetcher` for untrusted URLs (public addresses only, robots.txt, redirects re-checked, 2 MB cap).
+- `src/cgm/files.py`: reads a run's CSV files as UTF-8.
 - `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
 - `src/cgm/searchconsole.py`: imports Search Console CSV exports (client's own site only) into a
   run. Exports are made by hand or with the Chrome connector, one per filter, each under 1,000 rows.
@@ -84,9 +87,8 @@ autocomplete if absent), and the evidence and notes behind each change.
 ## Code conventions
 
 - Plain code for exact parts, Claude for judgment, and every Claude call goes through `claude.ask`.
-- Requests are polite: `USER_AGENT` and `PAUSE` in `autocomplete.py`, robots.txt for page fetches.
-  A refusal is reported, never worked around.
-- URLs from Claude or the web are untrusted: page fetches go to public addresses only, redirects
-  are followed by hand and re-checked, and at most 2 MB is read (`Verifier` in `websearch.py`).
+- Every web request goes through `fetch.py`: an honest crawler name, a pause between requests, and
+  for URLs from Claude or the web, `PageFetcher`. A refusal is reported, never worked around.
+- Files are read and written as UTF-8 (`files.read_rows` for CSV).
 - Any code check on a Claude answer (a phrase number, a quote on a page) turns a failed check
   into a miss, never a pass.

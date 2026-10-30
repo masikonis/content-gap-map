@@ -6,7 +6,7 @@ from cgm.client import load_client
 
 
 def test_expand_covers_seed_question_words_and_alphabet():
-    queries = expand("piano lessons")
+    queries = expand("piano lessons", SERVICES)
     assert len(queries) == 1 + len(SERVICES.before) + len(SERVICES.after) + 26
     assert queries[0] == "piano lessons"
     assert "how much piano lessons" in queries

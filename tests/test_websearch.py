@@ -21,6 +21,6 @@ def test_on_page_ignores_unclosed_scripts_without_slowing_down():
 
 
 def test_local_and_private_hosts_are_not_public():
-    from cgm.websearch import public_address
+    from cgm.fetch import public_address
     for host in ["localhost", "127.0.0.1", "192.168.1.1", "169.254.169.254", "::1"]:
         assert public_address(host) is None

@@ -51,5 +51,5 @@ def ask(prompt: str, schema: dict, model: str, trace: Path, label: str, tools: s
 
 
 def write_trace(trace: Path, record: dict) -> None:
-    with open(trace, "a") as f:
+    with open(trace, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")

@@ -49,8 +49,8 @@ def ai_demand(client: Client, rows: list[dict], exports: list[Path]) -> str:
     lines = [
         f"# AI-assistant searches: {client.primary.name}",
         "",
-        f"When someone asks an AI assistant a question, the assistant often runs its own Google",
-        f"searches to answer it. Those searches reach this site's Search Console. Of the searches in",
+        "When someone asks an AI assistant a question, the assistant often runs its own Google",
+        "searches to answer it. Those searches reach this site's Search Console. Of the searches in",
         f"these exports, **{share(ai['queries'], every['queries'])} look typed by an AI assistant**,",
         f"and they carry **{share(ai['impressions'], every['impressions'])} of the impressions**.",
         "",
@@ -90,7 +90,7 @@ def run(client: Client, run_folder: Path) -> None:
             if r["query"] not in seen:
                 seen.add(r["query"])
                 rows.append({**r, "ai": ai_style(r["query"])})
-    with open(run_folder / "searchconsole.csv", "w", newline="") as f:
+    with open(run_folder / "searchconsole.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, ["query", "clicks", "impressions", "position", "ai", "export"])
         writer.writeheader()
         writer.writerows(rows)
@@ -98,5 +98,5 @@ def run(client: Client, run_folder: Path) -> None:
     impressions = sum(int(r["impressions"]) for r in rows) or 1
     print(f"Done: {len(rows)} unique queries, {len(ai)} AI-style, carrying "
           f"{sum(int(r['impressions']) for r in ai) / impressions:.0%} of impressions.")
-    (run_folder / "ai-demand.md").write_text(ai_demand(client, rows, exports))
+    (run_folder / "ai-demand.md").write_text(ai_demand(client, rows, exports), encoding="utf-8")
     print(f"Saved to {run_folder / 'searchconsole.csv'} and {run_folder / 'ai-demand.md'}")

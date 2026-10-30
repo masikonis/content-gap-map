@@ -29,7 +29,7 @@ def load_client(folder: Path) -> Client:
     path = folder / "client.toml"
     if not path.exists():
         raise SystemExit(f"No client file at {path}. Copy examples/client.example.toml there.")
-    data = tomllib.loads(path.read_text())
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
     try:
         client = Client(
             folder=folder,

@@ -16,6 +16,7 @@ from pathlib import Path
 
 from cgm import claude
 from cgm.client import Client
+from cgm.files import read_rows
 from cgm.profiles import profile
 
 JUDGE = "sonnet"
@@ -89,7 +90,7 @@ def load_answer_key(client: Client) -> dict[str, list[str]]:
     """Each unique "People also ask" question, with the seeds it appeared under."""
     key = defaultdict(list)
     for path in sorted((client.folder / "answer-key").glob("google-serp-*.csv")):
-        for row in csv.DictReader(open(path)):
+        for row in read_rows(path):
             if row["kind"] == "people_also_ask" and row["seed"] not in key[row["text"]]:
                 key[row["text"]].append(row["seed"])
     return dict(key)
@@ -98,16 +99,16 @@ def load_answer_key(client: Client) -> dict[str, list[str]]:
 def load_collected(run: Path) -> tuple[list[str], dict[str, set[str]]]:
     """Every phrase any source found in the run, and which sources found it."""
     sources = defaultdict(set)
-    for row in csv.DictReader(open(run / "autocomplete.csv")):
+    for row in read_rows(run / "autocomplete.csv"):
         sources[row["suggestion"]].add("autocomplete")
     if (run / "searchconsole.csv").exists():
-        for row in csv.DictReader(open(run / "searchconsole.csv")):
+        for row in read_rows(run / "searchconsole.csv"):
             sources[row["query"]].add("searchconsole-ai" if row.get("ai") == "True" else "searchconsole")
     if (run / "predicted.csv").exists():
-        for row in csv.DictReader(open(run / "predicted.csv")):
+        for row in read_rows(run / "predicted.csv"):
             sources[row["question"]].add("predicted")
     if (run / "websearch.csv").exists():
-        for row in csv.DictReader(open(run / "websearch.csv")):
+        for row in read_rows(run / "websearch.csv"):
             sources[row["question"]].add("websearch" if row["verified"] == "True" else "websearch-unverified")
     return sorted(sources), dict(sources)
 
@@ -124,7 +125,7 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
     """Tag each question once and save the tags beside the answer key."""
     path = client.folder / "answer-key" / "buyer-tags.csv"
     if path.exists():
-        tags = {row["question"]: row for row in csv.DictReader(open(path))}
+        tags = {row["question"]: row for row in read_rows(path)}
         if all(q in tags for q in questions):
             return {q: {"buyer": tags[q]["buyer"] == "True", "reason": tags[q]["reason"]}
                     for q in questions}
@@ -139,7 +140,7 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
         for i, q in enumerate(group, 1):
             r = by_id.get(i, {"buyer": True, "reason": "no tag returned, kept as buyer"})
             tags[q] = {"buyer": r["buyer"], "reason": r["reason"]}
-    with open(path, "w", newline="") as f:
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["question", "buyer", "reason"])
         for q, t in tags.items():
@@ -249,7 +250,7 @@ def run(client: Client, run_folder: Path) -> None:
         passes["with predicted and unverified"] = judge(
             questions, shortlists(key, phrases, seeds), JUDGE, trace, "with predicted and unverified")
 
-    with open(run_folder / "score.csv", "w", newline="") as f:
+    with open(run_folder / "score.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["pass", "question", "seeds", "buyer", "found", "sources", "matches", "reason"])
         for name, rows in passes.items():
@@ -260,7 +261,7 @@ def run(client: Client, run_folder: Path) -> None:
                                  " | ".join(r["matches"]), r["reason"]])
 
     first, second = passes["judge pass 1"], passes["second judge"]
-    with open(run_folder / "disagreements.csv", "w", newline="") as f:
+    with open(run_folder / "disagreements.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["question", "buyer", f"{JUDGE} found", f"{JUDGE} match", f"{JUDGE} reason",
                          f"{SECOND_JUDGE} found", f"{SECOND_JUDGE} match", f"{SECOND_JUDGE} reason"])
@@ -275,13 +276,13 @@ def run(client: Client, run_folder: Path) -> None:
     if reviewed.exists():
         # A review covers the sources named in its "sources" column (autocomplete if absent), so
         # judges are compared on matches from those sources only.
-        review = list(csv.DictReader(open(reviewed)))
+        review = read_rows(reviewed)
         covered = set((review[0].get("sources") or "autocomplete").split("; ")) if review else set()
         truth = {r["question"]: r["found"] == "True" for r in review}
         summary["accuracy_against_reviewed"] = {
             name: accuracy([{**r, "found": found_by(r, sources, covered)} for r in rows], truth)
             for name, rows in passes.items() if name != "with predicted and unverified"}
-    (run_folder / "score-summary.json").write_text(json.dumps(summary, indent=2))
+    (run_folder / "score-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
 
 

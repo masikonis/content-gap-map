@@ -30,7 +30,7 @@ them. Cover these angles: {angles}. One question per item, no numbering."""
 
 def run(client: Client, run_folder: Path) -> None:
     trace = run_folder / "trace.jsonl"
-    with open(run_folder / "predicted.csv", "w", newline="") as f:
+    with open(run_folder / "predicted.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["seed", "question"])
         total = 0

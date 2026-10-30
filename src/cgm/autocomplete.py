@@ -14,22 +14,21 @@ from pathlib import Path
 import httpx
 
 from cgm.client import Client
-from cgm.profiles import SERVICES, Profile, profile
+from cgm.fetch import PAUSE, http_client
+from cgm.profiles import Profile, profile
 
 URL = "https://suggestqueries.google.com/complete/search"
-USER_AGENT = "content-gap-map/0.1 (+https://github.com/masikonis/content-gap-map)"
-PAUSE = 2.0
 BACKOFF = 60.0
 
 class Blocked(Exception):
     pass
 
 
-def expand(seed: str, words: Profile = SERVICES) -> list[str]:
+def expand(seed: str, site: Profile) -> list[str]:
     """The seed alone, with the profile's words before and after it, and with a to z after it."""
     return ([seed]
-            + [f"{word} {seed}" for word in words.before]
-            + [f"{seed} {word}" for word in words.after]
+            + [f"{word} {seed}" for word in site.before]
+            + [f"{seed} {word}" for word in site.after]
             + [f"{seed} {letter}" for letter in string.ascii_lowercase])
 
 
@@ -61,13 +60,13 @@ def fetch(http: httpx.Client, query: str, language: str, country: str) -> list:
 def run(client: Client) -> Path:
     out = client.folder / "runs" / datetime.now().strftime("%Y-%m-%d-%H%M%S")
     (out / "responses").mkdir(parents=True)
-    words = profile(client.site_type)
-    queries = [(seed, q) for seed in client.seeds for q in expand(seed, words)]
+    site = profile(client.site_type)
+    queries = [(seed, q) for seed in client.seeds for q in expand(seed, site)]
     requests, rows, started = 0, 0, time.monotonic()
     unique = set()
 
-    with (httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=10.0) as http,
-          open(out / "autocomplete.csv", "w", newline="") as f):
+    with (http_client(timeout=10.0) as http,
+          open(out / "autocomplete.csv", "w", newline="", encoding="utf-8") as f):
         writer = csv.writer(f)
         writer.writerow(["seed", "query", "suggestion", "rank", "relevance", "time"])
         for n, (seed, query) in enumerate(queries, 1):
@@ -78,7 +77,7 @@ def run(client: Client) -> Path:
                 break
             requests += 1
             (out / "responses" / f"{n:04d}.json").write_text(
-                json.dumps({"query": query, "reply": reply}, ensure_ascii=False))
+                json.dumps({"query": query, "reply": reply}, ensure_ascii=False), encoding="utf-8")
             at = datetime.now().isoformat(timespec="seconds")
             for rank, (text, relevance) in enumerate(parse(reply), 1):
                 writer.writerow([seed, query, text, rank, relevance, at])
