@@ -27,7 +27,8 @@
 - `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
 - `src/cgm/searchconsole.py`: imports Search Console CSV exports (client's own site only) into a
   run. Exports are made by hand or with the Chrome connector, one per filter, each under 1,000 rows.
-  Marks queries that look typed by an AI assistant (`ai_style`).
+  Marks queries that look typed by an AI assistant (`ai_style`) and writes `ai-demand.md`, a
+  client-facing summary of the AI-assistant share of search demand.
 - `src/cgm/predicted.py`: Claude-written questions in the way people ask AI assistants. Saved apart
   and never counted as demand.
 - `src/cgm/websearch.py`: optional source, off by default. Claude web search for questions people
@@ -58,7 +59,8 @@ private/<client>/decisions.md          decisions and findings about this client
 private/<client>/answer-key/           "People also ask" questions, and buyer-tags.csv
 private/<client>/search-console/       Search Console export zips, one per filter
 private/<client>/runs/<date-time>/     autocomplete.csv, responses/, searchconsole.csv, websearch.csv, predicted.csv, trace.jsonl,
-                                       score.csv, score-summary.json, disagreements.csv, reviewed.csv
+                                       ai-demand.md, score.csv, score-summary.json, disagreements.csv,
+                                       reviewed.csv
 ```
 
 ## Code conventions
