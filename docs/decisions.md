@@ -266,6 +266,9 @@ keeps the score from being inflated by loose topic matches. A question often app
 while its match was collected under another, so checking against everything avoids false misses.
 Stable verdicts are not the same as correct ones: the flip rate shows stability, and the second
 judge points a person at the verdicts most likely to be wrong, which keeps the review short.
+Known flaw: the shortlist keys each seed on its rarest word, and for seeds like "email marketing
+software" that word is generic ("software"), so right phrases can be dropped before judging. The
+first public demo lost two matches this way; it needs fixing before the next scored run.
 Measured against a reviewed run: with phrases quoted as text, Sonnet was right on 83 to 89% of
 verdicts and Opus on 96%, because Sonnet missed obvious matches in long lists and miscopied
 phrases. Numbering the phrases brought Sonnet to 92% and Opus to 91 to 94%, and most of Opus's
@@ -360,3 +363,22 @@ before the first run, the run is scored once, and the result is published as it 
 about choosing and paying for software, which is what the B2B software profile claims to handle;
 and no part of that profile was written from this category, so it is a fair test. Fixing the test
 in git before running it shows the result wasn't picked after the fact.
+
+## 2026-10-30: How a public result is reviewed and published
+
+**Chose:** before a result goes in the README, Claude reviews every buyer tag and every verdict on a
+buyer question against the full list of collected phrases, and two outside models (Claude Fable and
+OpenAI Codex, at high reasoning) check each change independently. Where either objects, the stricter
+call is kept. The raw result is committed before review, and every change is listed with its
+evidence in the run's `reviewed.csv`. The README states who reviewed (no person, when none did),
+the sample size and its rough range, the answer key's capture conditions, and any flaw the review
+found.
+
+**Alternatives:** a person reviewing every verdict (the strongest check, but not available for the
+first demo); reviewing only the judges' disagreements; publishing the judges' raw number.
+
+**Why:** both outside reviewers found real problems in the first draft: a range presented as a
+margin of error, an overstated claim about the misses, paraphrased questions counted twice, and the
+need to disclose a signed-in browser. Checking misses against the full phrase list exposed a scorer
+flaw the judges could not see. Keeping the stricter call where reviewers disagree stops a review
+from leaning toward a higher score.

@@ -1,0 +1,58 @@
+question,buyer,found,evidence,intent_group,judge_found,tool_tag,note,reviewed
+Which email marketing software is best?,True,True,best email marketing software,,True,True,,all verdicts
+Why are people leaving Mailchimp?,True,False,,,False,True,,all verdicts
+What is the 60/40 rule in email?,False,False,,,False,False,,tag only
+Is email marketing still worth it in 2026?,True,True,does email marketing work in 2026,,False,True,shortlist dropped the phrase; found in the full list,all verdicts
+What is the easiest email marketing platform?,True,True,easiest email marketing software,,True,True,,all verdicts
+What is the 80/20 rule in email marketing?,False,False,,,False,False,,tag only
+Why is everyone ditching Gmail?,False,False,,,False,False,,tag only
+What is a good replacement for Mailchimp?,True,True,email marketing software like mailchimp,,True,True,,all verdicts
+How much does Mailchimp cost per month?,True,False,,mailchimp-price,False,True,,all verdicts
+What is the 12 second rule for emails?,False,False,,,False,False,,tag only
+What are the 5 C's of email?,False,False,,,False,False,,tag only
+What is the 48-hour email rule?,False,False,,,False,False,,tag only
+Is email marketing declining?,True,False,,,False,True,"kept as not found: closest phrase 'is email marketing dead' asks about viability, not a trend",all verdicts
+What email is Gen Z using?,False,False,,,False,False,,tag only
+What is the best email platform in 2026?,True,True,best email marketing software 2026,,True,True,,all verdicts
+Are newsletters still relevant in 2026?,True,True,do newsletters still work,,True,False,whether the channel is worth it counts as buyer research,all verdicts
+Is there a better option than Mailchimp?,True,False,,,False,True,"kept as not found: closest phrase 'email marketing software like mailchimp' asks for similar tools, not better ones",all verdicts
+Does Microsoft have a newsletter tool?,True,True,newsletter software microsoft,,True,True,,all verdicts
+Can ChatGPT make a newsletter?,True,False,,,False,False,"which tool to use counts as buyer research, even outside the category",all verdicts
+Which newsletters make the most money?,False,False,,,False,False,,tag only
+What is the best free newsletter platform?,True,True,best newsletter software free,free-newsletter,True,True,,all verdicts
+How much is Mailchimp every month?,True,False,,mailchimp-price,False,True,,all verdicts
+What is the best software to use to create a newsletter?,True,True,best newsletter creation software,,True,True,,all verdicts
+Can I create a newsletter on Microsoft Word?,True,False,,,False,True,,all verdicts
+What are the best newsletter templates?,False,False,,,False,False,,tag only
+Which AI is best for creating newsletters?,True,False,,,False,True,,all verdicts
+What is the best free email newsletter platform?,True,True,best newsletter software free,free-newsletter,True,True,,all verdicts
+What is the easiest way to create a newsletter?,True,False,,,False,True,,all verdicts
+How do you automate an email?,True,True,how to create email automation,automate-email,True,True,,all verdicts
+Which tool is commonly used for email automation?,True,True,best email automation tools,,True,True,,all verdicts
+What is automation in email?,True,True,email automation definition,,True,True,,all verdicts
+Is there a free email automation tool?,True,True,best email automation tools free,,True,True,,all verdicts
+What is the 3 email rule?,False,False,,,False,False,,tag only
+What is the best email automation service?,True,True,best email automation,,True,True,,all verdicts
+Is 10 minute mail legal?,False,False,,,False,False,,tag only
+What are the 7 types of emails?,False,False,,,False,False,,tag only
+How do I automate emails?,True,True,how to create email automation,automate-email,True,True,,all verdicts
+What are five examples of automation?,False,False,,,False,False,,tag only
+How to tell if email is automated?,False,False,,,False,False,,tag only
+What is a transactional email?,True,True,explain transactional email,,True,True,,all verdicts
+Which email provider is best for transactional emails?,True,True,best transactional email,,True,True,,all verdicts
+Can you give me an example of a transactional email?,True,True,transactional email example,,True,True,,all verdicts
+Do transactional emails need to unsubscribe?,True,True,do transactional emails need an unsubscribe link,,True,True,,all verdicts
+What are the three types of emails?,False,False,,,False,False,,tag only
+What is the difference between transactional emails and marketing emails?,True,True,difference between transactional email and marketing email,,True,True,,all verdicts
+What is the most hacked email provider?,False,False,,,False,False,,tag only
+Which transactional email service is free?,True,True,best free transactional email service,,True,True,,all verdicts
+Are transactional emails subject to can spam?,True,True,are transactional.emails subject to can spam,,True,True,,all verdicts
+How to write a transition email?,False,False,,,False,False,,tag only
+What qualifies as a transactional email?,True,True,what constitutes a transactional email,,True,True,,all verdicts
+Why should you never delete spam emails?,False,False,,,False,False,,tag only
+Why shouldn't you unsubscribe from emails?,False,False,,,False,False,,tag only
+What is the best email marketing platform for a small business?,True,True,best email marketing app for small business,,True,True,,all verdicts
+What's the cheapest email marketing?,True,True,cheapest email marketing,,True,True,shortlist dropped the phrase; a judge had matched the wrong phrase,all verdicts
+Can I make money from email marketing?,False,False,,,False,False,"kept as not buyer: an earner's question, not a buyer's",tag only
+What is the best email format for marketing?,False,False,,,False,True,"content advice, not choosing software",tag only
+What are the 5 ts of email marketing?,False,False,,,False,False,,tag only
