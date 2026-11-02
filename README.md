@@ -148,8 +148,7 @@ subscription), of which $0.24 is the lump check. Every call is in
 Early. Milestone 1 sits on its target line on the public demo (above). Question collection (Google
 autocomplete, and Search Console for your own site) and its scorer are built, with Claude web search
 and predicted questions as optional extras. Grouping into topics is built and close to its target
-(above). Site reading and
-the report are not built yet. It is built in public, one step at a time. The choices made so far and
+(above). Site reading and the report are not built yet. It is built in public, one step at a time. The choices made so far and
 the reasons for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with their
 options, are in [docs/architecture.md](docs/architecture.md).
 
