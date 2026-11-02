@@ -1,6 +1,6 @@
 # Content Gap Map
 
-Buyer questions your site misses.
+Commercial buyer questions your site misses.
 
 Your buyers ask hundreds of questions before they contact you: on Google, in AI assistants, in
 forums. When your site doesn't answer one, a competitor's page does, or an AI answer built from

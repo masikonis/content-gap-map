@@ -8,7 +8,7 @@ from cgm.client import load_client
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="cgm", description="Buyer questions your site misses.")
+    parser = argparse.ArgumentParser(prog="cgm", description="Commercial buyer questions your site misses.")
     steps = parser.add_subparsers(dest="step", required=True)
 
     step = steps.add_parser("autocomplete", help="collect Google autocomplete suggestions (starts a new run)")
