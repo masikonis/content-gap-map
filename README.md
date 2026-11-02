@@ -173,10 +173,11 @@ call is in [trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/trace.jsonl).
 
 Early. Milestone 1 sits on its target line on the public demo (above). Question collection (Google
 autocomplete, and Search Console for your own site) and its scorer are built, with Claude web search
-and predicted questions as optional extras. Grouping into commercial topics is built and close to its target
-(above). Site reading and the report are not built yet. It is built in public, one step at a time. The choices made so far and
-the reasons for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with their
-options, are in [docs/architecture.md](docs/architecture.md).
+and predicted questions as optional extras. Grouping into commercial topics is built and close to
+its target (above). Site reading and the report are not built yet. It is built in public, one step
+at a time. The choices made so far and the reasons for them are in
+[docs/decisions.md](docs/decisions.md); the parts still open, with their options, are in
+[docs/architecture.md](docs/architecture.md).
 
 ## Run it
 
