@@ -17,13 +17,16 @@ SCHEMA = {"type": "object", "properties": {"stages": {"type": "array", "items": 
 PROMPT = """Each numbered item below is a buyer's search question, or a group of search phrases
 about one topic. Mark the stage of the buyer who searches it:
 - learning: finding out about the problem or the activity, not yet weighing what to buy ("what is
-  piano notation", "how do piano lessons work"), including how to do a task in a provider or tool
-  the buyer already uses ("how to book a lesson in the acme app");
+  piano notation", "how do piano lessons work"), including questions from someone who already uses
+  one provider: how to do a task in it, or how their account or settings work ("how to book a
+  lesson in the acme app", "do acme credits expire");
 - comparing: weighing options or whether to buy at all ("best piano schools", "online vs in-person
   piano lessons", "are piano lessons worth it");
 - choosing: deciding on a provider or ready to buy ("acme piano school prices", "acme
   alternatives", "piano lessons near me", "how much do piano lessons cost"), including what one
-  named provider offers or how it can be trusted ("does acme teach jazz", "is acme any good").
+  named provider offers before buying (its features, plans, integrations, regions), whether it
+  can be trusted, and how to sign up ("does acme teach jazz", "does acme work with zoom", "is acme
+  any good", "how to join acme").
 
 Items:
 {items}"""

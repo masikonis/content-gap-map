@@ -1,105 +1,78 @@
 {
   "real_phrases": 3355,
-  "buyer_phrases": 2025,
-  "after_merging_rewordings": 1876,
-  "topics": 551,
-  "topics_before_merge": 482,
-  "topics_split_off": 106,
+  "buyer_phrases": 2136,
+  "after_merging_rewordings": 1981,
+  "topics": 574,
+  "topics_before_merge": 475,
+  "topics_split_off": 142,
   "largest_topics": [
-    44,
-    38,
-    32,
-    32,
-    32
+    46,
+    34,
+    33,
+    30,
+    30
   ],
-  "single_phrase_topics": 244,
+  "single_phrase_topics": 246,
   "left_out_by_claude": 11,
-  "names_fixed": 7,
+  "names_fixed": 9,
   "names_not_questions": 0,
-  "possible_duplicate_topic_pairs": 51,
+  "possible_duplicate_topic_pairs": 35,
   "topics_by_stage": {
-    "learning": 193,
-    "comparing": 142,
-    "choosing": 216,
+    "learning": 188,
+    "comparing": 141,
+    "choosing": 245,
     "unknown": 0
   },
   "phrases_by_stage": {
-    "learning": 658,
-    "comparing": 567,
-    "choosing": 800,
+    "learning": 749,
+    "comparing": 597,
+    "choosing": 790,
     "unknown": 0
   },
-  "kept_topics": 358,
+  "kept_topics": 386,
   "pair_test": {
     "questions": 17,
-    "same_question_pairs": 1087,
-    "share_together": 0.925,
-    "share_together_per_question": 0.916,
-    "share_apart": 1.0,
+    "same_question_pairs": 1216,
+    "share_together": 0.663,
+    "share_together_per_question": 0.842,
+    "share_apart": 0.994,
     "random_baseline": {
-      "share_together": 0.006,
-      "share_together_per_question": 0.005,
+      "share_together": 0.007,
+      "share_together_per_question": 0.007,
       "share_apart": 0.995
     }
   },
-  "split_check_passes": true,
+  "split_check_passes": false,
   "lump_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "one_page": 35,
-    "passes": false,
+    "one_page": 38,
+    "passes": true,
     "not_one_page": [
       {
-        "topic": "What does Brevo offer for transactional email?",
-        "reason": "Mixes intents: 'brevo transactional email pricing' is cost, 'send transactional email brevo' and 'brevo transactional email template' are setup how-tos, 'what are transactional emails in brevo' is definitional."
+        "topic": "What is the best open source or self-hosted transactional email?",
+        "reason": "'transactional email open source / self hosted' is an options roundup, 'listmonk transactional email' is a listmonk-specific how-to, and 'transactional email coolify' is a deployment how-to; different pages."
       },
       {
-        "topic": "How to do cold email outreach automation?",
-        "reason": "'email automation linkedin' is about LinkedIn outreach automation, a different channel from the cold email automation phrases."
-      },
-      {
-        "topic": "What is the best email marketing software for SaaS?",
-        "reason": "'is email marketing saas' asks whether email marketing is a SaaS category, unlike the phrases seeking email marketing software for SaaS companies."
-      },
-      {
-        "topic": "Mailchimp vs Squarespace email campaigns?",
-        "reason": "'mailchimp vs squarespace email campaigns' is a comparison, while 'how much is email marketing on squarespace' is a vendor pricing question."
-      },
-      {
-        "topic": "How does Mailchimp compare to other tools?",
-        "reason": "'mailchimp vs' is a generic alternatives query, while 'mailerlite vs mailchimp vs constant contact' is a specific three-way comparison."
+        "topic": "How does Brevo integrate with Zapier and n8n?",
+        "reason": "'brevo n8n' and 'brevo zapier / zapier integration' are setups for two different vendors; each needs its own integration guide."
       }
     ]
   },
   "stage_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "same_keep_or_drop": 35,
-    "same_stage": 31,
-    "passes": false,
+    "same_keep_or_drop": 38,
+    "same_stage": 37,
+    "passes": true,
     "keep_or_drop_differs": [
       {
-        "topic": "Does Mailchimp integrate with Zoho?",
-        "marked": "choosing",
+        "topic": "How does email automation work for business?",
+        "marked": "comparing",
         "judge": "learning"
       },
       {
-        "topic": "Do Mailchimp accounts expire?",
-        "marked": "choosing",
-        "judge": "learning"
-      },
-      {
-        "topic": "What is MailerLite EU?",
-        "marked": "learning",
-        "judge": "choosing"
-      },
-      {
-        "topic": "How does Brevo integrate with ZoomInfo?",
-        "marked": "choosing",
-        "judge": "learning"
-      },
-      {
-        "topic": "How do you create a Brevo account?",
+        "topic": "How do you use the Brevo email API and relay?",
         "marked": "learning",
         "judge": "choosing"
       }

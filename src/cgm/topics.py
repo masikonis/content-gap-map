@@ -127,7 +127,9 @@ SPLIT_PROMPT = """Each numbered topic below is a group of search phrases meant t
 good page. For each topic, find the phrases that a page answering the rest would not fully answer,
 and move them out. Common cases: asking about the activity itself ("are piano lessons worth it")
 next to choosing a provider ("cheapest piano school"); how to do it yourself next to which provider
-to pick; setup next to price; two different vendors or products. A variation one page covers in a
+to pick; setup next to price; two different vendors or products; what one vendor offers next to
+a comparison of several vendors; one audience or use next to another ("for schools", "for
+choirs"). A variation one page covers in a
 section, such as a device or a free option, stays.
 
 For each group of phrases to move out, give the topic number, the phrase numbers within that topic,

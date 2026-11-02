@@ -562,8 +562,10 @@ question per topic, judged 20 topics and needed 18 of them.
   provider. Collection stays broad; the stage is marked right after grouping, and learning-stage
   topics stay in topics.csv as evidence but are dropped from every later step. How to do something
   in a tool the buyer already uses ("how to send transactional email in HubSpot") counts as
-  learning: it is support, not a buying decision. What one named provider offers, or whether it
-  can be trusted ("does MailerLite have an app", "is MailerLite safe"), counts as choosing. One
+  learning: it is support, not a buying decision, and so does a question about one's own account.
+  What one named provider offers before buying (features, plans, integrations, regions), whether
+  it can be trusted, and how to sign up ("does MailerLite have an app", "is MailerLite safe")
+  count as choosing. One
   rule (`stage.py`) marks both answer-key questions and topics, so milestones 1 and 2 count the
   same thing.
 - **An answer counts only with proof.** A page answers a topic when it answers it in detail and

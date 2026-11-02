@@ -1,18 +1,18 @@
 {
   "questions": 57,
   "buyer_questions": 34,
-  "share_found_buyer": 0.882,
+  "share_found_buyer": 0.912,
   "share_found_all": 0.596,
   "share_found_buyer_by_source": {
-    "all sources": 0.882,
-    "all sources, with unverified": 0.941,
-    "all sources, with predicted": 0.941,
-    "autocomplete": 0.882,
+    "all sources": 0.912,
+    "all sources, with unverified": 0.882,
+    "all sources, with predicted": 0.882,
+    "autocomplete": 0.912,
     "searchconsole": 0.0,
     "searchconsole, AI searches": 0.0,
     "websearch": 0.0,
     "websearch, with unverified": 0.0,
-    "predicted": 0.059
+    "predicted": 0.029
   },
   "buyer_questions_only_one_source_found": {
     "autocomplete": [
@@ -29,6 +29,7 @@
       "What is the best free newsletter platform?",
       "How much is Mailchimp every month?",
       "What is the best software to use to create a newsletter?",
+      "Can I create a newsletter on Microsoft Word?",
       "What is the best free email newsletter platform?",
       "How do you automate an email?",
       "Which tool is commonly used for email automation?",

@@ -1,3 +1,3 @@
 question,buyer,sonnet found,sonnet match,sonnet reason,opus found,opus match,opus reason
-What are the best newsletter templates?,False,True,newsletter template software | software newsletter template,Generic newsletter template phrases match best templates loosely.,False,,Template phrases are brand-specific or about software.
-What are the three types of emails?,False,False,,No phrase asks the three main email types specifically.,True,types of email categories,"Asks for general email categories, same as types of emails."
+Can I create a newsletter on Microsoft Word?,True,True,newsletter software microsoft,Newsletter software Microsoft roughly asks about making newsletters in Word.,False,,No phrase about making newsletters in Microsoft Word.
+What are the three types of emails?,False,False,,No phrase asks for the three main email types.,True,types of email categories,Asks for the categories of email types in general

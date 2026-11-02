@@ -45,7 +45,7 @@ email marketing software: Mailchimp, with Brevo and MailerLite as competitors.
 | Milestone | What it proves | Status on the demo |
 |---|---|---|
 | 1. Real questions | It collects the questions real buyers ask, not ones a machine made up | Above target: 85% of the commercial questions in Google's "People also ask" found, against 75% ([details](docs/results/milestone-1.md)) |
-| 2. Clear topics | It groups them into page-sized topics and keeps only commercial ones | Not passed yet: all three checks passed on one run, two missed by one topic on the next ([details](docs/results/milestone-2.md)) |
+| 2. Clear topics | It groups them into page-sized topics and keeps only commercial ones | Not passed yet: all three checks passed on two of the last four runs, but never two in a row ([details](docs/results/milestone-2.md)) |
 | 3. The right content | It reads your site and competitors' sites, starting with the sitemap | Not started |
 | 4. Honest verdicts | It gives each site the verdict its depth can prove, with the proof | Not started |
 | 5. Gaps worth acting on | A short, ranked list of pages worth writing | Not started |
