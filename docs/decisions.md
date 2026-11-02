@@ -532,7 +532,8 @@ three ways on every run.
 - **Right stage:** Claude Fable marks the stage of 40 topics picked with a fixed seed, without
   seeing the first marks; at least 36 must agree on keep or drop. A missing verdict is a fail.
 - Milestone 2 passes when all three checks pass on two runs in a row, because Claude's grouping
-  varies from run to run. Claude proposed this rule; it is not yet confirmed.
+  varies from run to run, and one lucky run would not show the tool works. Claude proposed this
+  rule and Nerijus kept it when one run passed and the next missed by one topic on two checks.
 
 **Alternatives:** the split check alone, which a tool that dumps everything into a few huge topics
 would pass; judging 20 topics, too noisy (the same code scored 12 and 15 of 20 on two runs);
