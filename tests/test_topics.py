@@ -67,3 +67,17 @@ def test_apply_splits_moves_phrases_once_and_drops_emptied_topics():
     result, made = apply_splits(topics, splits)
     assert result == [("Worth it?", ["b", "c"]), ("Other?", ["a"]), ("Opening?", ["d"])]
     assert made == 3
+
+
+def test_stage_check_counts_keep_or_drop_agreement(monkeypatch, tmp_path):
+    from cgm import topics as t
+    many = [(f"t{n}?", ["a"]) for n in range(1, 41)]
+    marked = ["learning"] * 10 + ["comparing"] * 30
+    # The judge marks 1..39 choosing and gives no verdict for 40.
+    def ask(prompt, schema, model, trace, label):
+        return {"stages": [{"id": i, "stage": "choosing"} for i in range(1, 40)]}
+    monkeypatch.setattr(t.claude, "ask", ask)
+    result = t.stage_check(many, marked, tmp_path / "trace.jsonl")
+    # It differs on the 10 learning topics, and the missing verdict counts as a difference.
+    assert result["same_keep_or_drop"] == 29 and result["passes"] is False
+    assert result["same_stage"] == 0

@@ -41,8 +41,10 @@
 - `src/cgm/websearch.py`: optional source, off by default. Claude web search for questions people
   wrote, then a plain-code check that each question is on its page.
 - `src/cgm/topics.py`: milestone 2. Tags buyer phrases, merges rewordings, groups them into named
-  topics with Claude (group, merge, split), runs the pair test when the run has reviewed verdicts,
-  and has Claude Fable judge 40 random topics blind (the lump check).
+  topics with Claude (group, merge, split), and marks each topic's funnel stage. Learning-stage
+  topics are kept in topics.csv but dropped from every later step; the tool covers only comparing
+  and choosing. Runs the pair test when the run has reviewed verdicts, and has Claude Fable judge
+  40 random topics blind for lumping and for stage (the lump and stage checks).
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
 - `src/cgm/claude.py`: the only place Claude is called. Trimmed `claude -p` with a JSON schema;
   every call appends a line to the run's `trace.jsonl`.
@@ -83,7 +85,7 @@ private/blocklist.txt          terms the local pre-commit hook refuses to commit
     disagreements.csv
     trace.jsonl                        every Claude call
     reviewed.csv, reviewed-summary.json   the reviewed verdicts, once a review is done
-    topics.csv, topics-summary.json    buyer phrases grouped into topics, and the pair test
+    topics.csv, topics-summary.json    buyer phrases grouped into topics with a funnel stage, and the checks
     first-score/                       a score kept as published, when a later one replaces it
 ```
 

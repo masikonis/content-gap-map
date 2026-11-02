@@ -1,31 +1,44 @@
 {
   "real_phrases": 1473,
-  "buyer_phrases": 855,
-  "after_merging_rewordings": 776,
-  "topics": 203,
-  "topics_before_merge": 197,
-  "topics_split_off": 16,
+  "buyer_phrases": 837,
+  "after_merging_rewordings": 763,
+  "topics": 217,
+  "topics_before_merge": 214,
+  "topics_split_off": 11,
   "largest_topics": [
-    33,
+    30,
     29,
-    27,
-    26,
-    25
+    25,
+    24,
+    23
   ],
-  "single_phrase_topics": 96,
-  "left_out_by_claude": 16,
-  "names_fixed": 11,
+  "single_phrase_topics": 94,
+  "left_out_by_claude": 8,
+  "names_fixed": 1,
   "names_not_questions": 0,
-  "possible_duplicate_topic_pairs": 19,
+  "possible_duplicate_topic_pairs": 9,
+  "topics_by_stage": {
+    "learning": 91,
+    "comparing": 84,
+    "choosing": 42,
+    "unknown": 0
+  },
+  "phrases_by_stage": {
+    "learning": 279,
+    "comparing": 418,
+    "choosing": 140,
+    "unknown": 0
+  },
+  "kept_topics": 126,
   "pair_test": {
-    "questions": 24,
-    "same_question_pairs": 885,
-    "share_together": 0.885,
-    "share_together_per_question": 0.844,
-    "share_apart": 0.995,
+    "questions": 25,
+    "same_question_pairs": 890,
+    "share_together": 0.896,
+    "share_together_per_question": 0.819,
+    "share_apart": 0.996,
     "random_baseline": {
-      "share_together": 0.017,
-      "share_together_per_question": 0.009,
+      "share_together": 0.016,
+      "share_together_per_question": 0.008,
       "share_apart": 0.987
     }
   },
@@ -33,12 +46,45 @@
   "lump_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "one_page": 39,
+    "one_page": 38,
     "passes": true,
     "not_one_page": [
       {
-        "topic": "How does Squarespace email automation and marketing work and cost?",
-        "reason": "'email automation squarespace' is a how-to/feature query, while 'squarespace email automation pricing' and 'how much is email marketing on squarespace' are pricing queries; setup and price need different pages."
+        "topic": "How to automate sales and lead outreach emails?",
+        "reason": "'what is cold email automation' is a definition, 'free cold email marketing software' is a tool list, and 'email lead automation' / 'email automation for sales' are broader sales-automation topics; these need different pages."
+      },
+      {
+        "topic": "How to do email automation in Zoho?",
+        "reason": "'zoho email automation pricing' is a price question while 'zoho email automation workflow' and 'email automation in zoho crm' are setup/how-to; price and setup need different pages."
+      }
+    ]
+  },
+  "stage_check": {
+    "judge": "fable",
+    "topics_checked": 40,
+    "same_keep_or_drop": 36,
+    "same_stage": 34,
+    "passes": true,
+    "keep_or_drop_differs": [
+      {
+        "topic": "What is SuperMailer newsletter software?",
+        "marked": "choosing",
+        "judge": "learning"
+      },
+      {
+        "topic": "Does Hetzner offer transactional email?",
+        "marked": "choosing",
+        "judge": "learning"
+      },
+      {
+        "topic": "What features does email marketing software have?",
+        "marked": "comparing",
+        "judge": "learning"
+      },
+      {
+        "topic": "Is SuperMailer newsletter software flagged as spam?",
+        "marked": "choosing",
+        "judge": "learning"
       }
     ]
   }

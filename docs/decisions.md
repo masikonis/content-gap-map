@@ -533,7 +533,10 @@ question per topic, judged 20 topics and needed 18 of them.
   choose a provider (bottom: "Mailchimp pricing", "Mailchimp alternatives"). Topics asked while
   still learning about the problem (top: "what is email automation") are left out entirely, even
   when nobody answers them. Every gap should tie to a business outcome: a buyer choosing a
-  provider.
+  provider. Collection stays broad; the stage is marked right after grouping, and learning-stage
+  topics stay in topics.csv as evidence but are dropped from every later step. How to do something
+  in a tool the buyer already uses ("how to send transactional email in HubSpot") counts as
+  learning: it is support, not a buying decision.
 - **An answer counts only with proof.** A page answers a topic when it answers it in detail and
   backs it with expertise that can't be faked: case studies, project details, real prices, or
   other proof of having done the work. A page that answers in general terms is a gap too, and
@@ -542,9 +545,14 @@ question per topic, judged 20 topics and needed 18 of them.
   pages worth writing next without asking. The result is a short brief a client can act on.
 
 **Alternatives:** keeping every buyer question, including the learning stage, as milestones 1 and
-2 do now; counting any page that answers the question, however generic.
+2 do now; dropping them only when ranking the gap list, which keeps everything until the end but
+reads and judges pages for topics that will be thrown away; keeping how-to questions about one
+tool as choosing, since a struggling user may switch, which fills the list with support pages;
+counting any page that answers the question, however generic.
 
 **Why:** a gap is worth a page only when it has commercial value and leads to a business outcome.
+Learning-stage content makes little sense now that AI assistants answer those questions
+directly. This is an opinionated choice, and the README says so up front.
 Expertise backed by proof can't be faked, so it is what makes a page worth more than a generic
 one. What it costs: judging proof needs each page's text, not just its sitemap or headings, and
 the funnel stage is a Claude judgment that needs its own check.

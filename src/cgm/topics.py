@@ -11,13 +11,16 @@
 4. A split pass shows Claude each topic of two or more phrases and moves out phrases that a page
    answering the rest would not answer, into new topics.
 5. Every topic name must be a question; Claude renames the ones that aren't.
+6. Claude marks each topic's funnel stage: learning, comparing or choosing. Learning-stage topics
+   stay in topics.csv as evidence but are dropped from every later step.
 
 Code checks every answer: a phrase assigned twice keeps its first topic, and a phrase left out
 becomes a topic of its own and is counted. With reviewed verdicts, the pair test checks that
 phrases matched to the same answer-key question share a topic, next to a random baseline. A name
 audit asks Claude which topic names mean the same thing, to count over-splitting. The lump check
 has an outside model judge LUMP_SAMPLE random topics blind, to count topics that need more than
-one page.
+one page. The stage check has the outside model mark STAGE_SAMPLE random topics blind, and counts
+how often it agrees on which topics are kept.
 """
 
 import csv
@@ -44,6 +47,9 @@ LUMP_MODEL = "fable"  # an outside judge: not the model that made the topics
 LUMP_SAMPLE = 40
 LUMP_PASS = 36
 SPLIT_PASS = 0.85
+STAGE_SAMPLE = 40
+STAGE_PASS = 36
+STAGES = ["learning", "comparing", "choosing"]
 
 TAG_SCHEMA = {"type": "object", "properties": {"buyer": {"type": "array", "items": {"type": "integer"}}},
               "required": ["buyer"]}
@@ -165,6 +171,23 @@ naming the phrases that differ.
 
 Groups:
 {groups}"""
+
+STAGE_SCHEMA = {"type": "object", "properties": {"stages": {"type": "array", "items": {
+    "type": "object", "properties": {"id": {"type": "integer"}, "stage": {"type": "string", "enum": STAGES}},
+    "required": ["id", "stage"]}}}, "required": ["stages"]}
+
+STAGE_PROMPT = """Each numbered topic below is a group of search phrases. Mark the stage of the
+buyer who searches it:
+- learning: finding out about the problem or the activity, not yet weighing what to buy ("what is
+  piano notation", "how do piano lessons work"), including how to do something in a provider or
+  tool the buyer already uses ("how to book a lesson in the acme app");
+- comparing: weighing options or whether to buy at all ("best piano schools", "online vs in-person
+  piano lessons", "are piano lessons worth it");
+- choosing: deciding on a provider or ready to buy ("acme piano school prices", "acme
+  alternatives", "piano lessons near me", "how much do piano lessons cost").
+
+Topics:
+{topics}"""
 
 NOISE = re.compile(r"^(19|20)\d\d$|^reddit$|^quora$|^youtube$")
 
@@ -329,6 +352,37 @@ def lump_check(topics: list[tuple[str, list[str]]], trace: Path) -> dict:
             "not_one_page": failed}
 
 
+def stage_listing(topics: list[tuple[str, list[str]]], ids: list[int]) -> str:
+    """Topics shown by their phrases only, numbered 1.. in the order of `ids`."""
+    return "\n".join(f"{i}. {'; '.join(topics[n - 1][1][:MERGE_EXAMPLES])}" for i, n in enumerate(ids, 1))
+
+
+def stages(topics: list[tuple[str, list[str]]], trace: Path) -> list[str]:
+    """Each topic's funnel stage; "unknown" when Claude gave none, and an unknown topic is kept."""
+    ids = list(range(1, len(topics) + 1))
+    answer = claude.ask(STAGE_PROMPT.format(topics=stage_listing(topics, ids)), STAGE_SCHEMA, MODEL,
+                        trace, "topics: stage")
+    got = {v["id"]: v["stage"] for v in answer["stages"] if 1 <= v["id"] <= len(topics)}
+    return [got.get(n, "unknown") for n in ids]
+
+
+def stage_check(topics: list[tuple[str, list[str]]], marked: list[str], trace: Path) -> dict:
+    """An outside model marks STAGE_SAMPLE random topics blind; counts agreement on keep or drop
+    (learning is dropped). A missing verdict counts as a disagreement."""
+    picked = sorted(random.Random(0).sample(range(1, len(topics) + 1), min(STAGE_SAMPLE, len(topics))))
+    answer = claude.ask(STAGE_PROMPT.format(topics=stage_listing(topics, picked)), STAGE_SCHEMA,
+                        LUMP_MODEL, trace, "topics: stage check")
+    theirs = {v["id"]: v["stage"] for v in answer["stages"] if 1 <= v["id"] <= len(picked)}
+    differ = [{"topic": topics[n - 1][0], "marked": marked[n - 1], "judge": theirs.get(i, "no verdict")}
+              for i, n in enumerate(picked, 1)
+              if theirs.get(i) is None or (theirs[i] == "learning") != (marked[n - 1] == "learning")]
+    same_stage = sum(theirs.get(i) == marked[n - 1] for i, n in enumerate(picked, 1))
+    return {"judge": LUMP_MODEL, "topics_checked": len(picked), "same_keep_or_drop": len(picked) - len(differ),
+            "same_stage": same_stage,
+            "passes": len(picked) == STAGE_SAMPLE and len(picked) - len(differ) >= STAGE_PASS,
+            "keep_or_drop_differs": differ}
+
+
 def pair_test(topic_of: dict[str, int], same_groups: list[set[str]]) -> dict:
     """Pairs of phrases matched to the same question that share a topic (pooled, and averaged per
     question so one big question can't dominate), pairs matched to different questions kept apart,
@@ -382,18 +436,20 @@ def run(client: Client, run_folder: Path) -> None:
     topics, split_off = split(topics, trace)
     topics, renamed = ensure_questions(topics, trace)
     topics = sorted(topics, key=lambda t: -sum(len(variants[p]) for p in t[1]))
+    marked = stages(topics, trace)
     print(f"{before_merge} topics grouped, {len(topics)} after merging and splitting ({split_off} split "
           f"off); {missing} phrases left out by grouping; {renamed} names fixed", flush=True)
 
     topic_of = {}
     with open(run_folder / "topics.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["topic_id", "topic", "phrase", "same_words_as", "sources"])
+        writer.writerow(["topic_id", "topic", "stage", "phrase", "same_words_as", "sources"])
         for n, (name, members) in enumerate(topics, 1):
             for rep in members:
                 for p in variants[rep]:
                     topic_of[p] = n
-                    writer.writerow([n, name, p, rep if p != rep else "", "; ".join(sorted(sources[p]))])
+                    writer.writerow([n, name, marked[n - 1], p, rep if p != rep else "",
+                                     "; ".join(sorted(sources[p]))])
 
     sizes = sorted((sum(len(variants[p]) for p in members) for _, members in topics), reverse=True)
     summary = {"real_phrases": len(real), "buyer_phrases": len(buyers),
@@ -403,12 +459,17 @@ def run(client: Client, run_folder: Path) -> None:
                "single_phrase_topics": sizes.count(1), "left_out_by_claude": missing,
                "names_fixed": renamed,
                "names_not_questions": sum(not name.strip().endswith("?") for name, _ in topics),
-               "possible_duplicate_topic_pairs": audit(topics, trace)}
+               "possible_duplicate_topic_pairs": audit(topics, trace),
+               "topics_by_stage": {st: marked.count(st) for st in STAGES + ["unknown"]},
+               "phrases_by_stage": {st: sum(len(variants[p]) for (_, m), s in zip(topics, marked)
+                                            if s == st for p in m) for st in STAGES + ["unknown"]},
+               "kept_topics": sum(st != "learning" for st in marked)}
     groups = reviewed_groups(run_folder)
     if groups:
         summary["pair_test"] = pair_test(topic_of, groups)
         per = summary["pair_test"]["share_together_per_question"]
         summary["split_check_passes"] = per is not None and per >= SPLIT_PASS
     summary["lump_check"] = lump_check(topics, trace)
+    summary["stage_check"] = stage_check(topics, marked, trace)
     (run_folder / "topics-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
