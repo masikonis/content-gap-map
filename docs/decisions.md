@@ -524,3 +524,27 @@ cheapest honest judge. What it costs: about $0.24 per run, and the judge is stil
 
 The target was set after the first results and changed once: the first version asked for one
 question per topic, judged 20 topics and needed 18 of them.
+
+## 2026-11-02: Only commercial topics count, and an answer needs proof
+
+**Chose:**
+- **Commercial topics only.** The gap list covers topics a buyer asks while comparing options
+  (middle of the funnel: "best email automation tools", "Brevo vs MailerLite") or while ready to
+  choose a provider (bottom: "Mailchimp pricing", "Mailchimp alternatives"). Topics asked while
+  still learning about the problem (top: "what is email automation") are left out entirely, even
+  when nobody answers them. Every gap should tie to a business outcome: a buyer choosing a
+  provider.
+- **An answer counts only with proof.** A page answers a topic when it answers it in detail and
+  backs it with expertise that can't be faked: case studies, project details, real prices, or
+  other proof of having done the work. A page that answers in general terms is a gap too, and
+  often the most useful one, since any competitor or AI answer can say the same.
+- **What it is for:** a free addition to client work, run proactively, so a client sees the
+  pages worth writing next without asking. The result is a short brief a client can act on.
+
+**Alternatives:** keeping every buyer question, including the learning stage, as milestones 1 and
+2 do now; counting any page that answers the question, however generic.
+
+**Why:** a gap is worth a page only when it has commercial value and leads to a business outcome.
+Expertise backed by proof can't be faked, so it is what makes a page worth more than a generic
+one. What it costs: judging proof needs each page's text, not just its sitemap or headings, and
+the funnel stage is a Claude judgment that needs its own check.
