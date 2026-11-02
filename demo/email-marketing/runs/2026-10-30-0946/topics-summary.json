@@ -1,63 +1,44 @@
 {
   "real_phrases": 1473,
-  "buyer_phrases": 860,
-  "after_merging_rewordings": 778,
-  "topics": 186,
-  "topics_before_merge": 200,
+  "buyer_phrases": 855,
+  "after_merging_rewordings": 776,
+  "topics": 203,
+  "topics_before_merge": 197,
+  "topics_split_off": 16,
   "largest_topics": [
-    52,
-    39,
-    35,
-    31,
-    28
+    33,
+    29,
+    27,
+    26,
+    25
   ],
-  "single_phrase_topics": 71,
-  "left_out_by_claude": 2,
-  "names_fixed": 0,
+  "single_phrase_topics": 96,
+  "left_out_by_claude": 16,
+  "names_fixed": 11,
   "names_not_questions": 0,
-  "possible_duplicate_topic_pairs": 10,
+  "possible_duplicate_topic_pairs": 19,
   "pair_test": {
-    "questions": 25,
-    "same_question_pairs": 900,
-    "share_together": 0.882,
-    "share_together_per_question": 0.895,
+    "questions": 24,
+    "same_question_pairs": 885,
+    "share_together": 0.885,
+    "share_together_per_question": 0.844,
     "share_apart": 0.995,
     "random_baseline": {
-      "share_together": 0.019,
-      "share_together_per_question": 0.013,
-      "share_apart": 0.986
+      "share_together": 0.017,
+      "share_together_per_question": 0.009,
+      "share_apart": 0.987
     }
   },
-  "split_check_passes": true,
+  "split_check_passes": false,
   "lump_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "one_page": 34,
-    "passes": false,
+    "one_page": 39,
+    "passes": true,
     "not_one_page": [
       {
-        "topic": "What is the cheapest email marketing service?",
-        "reason": "'is email marketing cheap' and 'email marketing cost effective' ask whether the channel is worth it, while the rest want a list of cheapest platforms."
-      },
-      {
-        "topic": "How does Zoho email marketing and automation work?",
-        "reason": "'email automation in zoho crm' and 'zoho email automation workflow' concern Zoho CRM workflows, while 'email marketing software zoho campaigns' is a different Zoho product."
-      },
-      {
-        "topic": "What is the best email marketing and automation for Shopify?",
-        "reason": "'best email automation for shopify' is a tool comparison, while 'how to email marketing on shopify' is a setup how-to."
-      },
-      {
-        "topic": "What is a transactional email service?",
-        "reason": "'email marketing esp' asks about email service providers for marketing, not the meaning of a transactional email service."
-      },
-      {
-        "topic": "How do Zoho transactional emails work and cost?",
-        "reason": "'zoho transactional email api' is developer setup while 'zoho transactional email pricing' is cost; different pages."
-      },
-      {
-        "topic": "How does Squarespace email automation work and cost?",
-        "reason": "'email automation squarespace' is a how-it-works query while 'how much is email marketing on squarespace' is pricing."
+        "topic": "How does Squarespace email automation and marketing work and cost?",
+        "reason": "'email automation squarespace' is a how-to/feature query, while 'squarespace email automation pricing' and 'how much is email marketing on squarespace' are pricing queries; setup and price need different pages."
       }
     ]
   }

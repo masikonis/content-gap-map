@@ -101,46 +101,53 @@ published 74% stays the reviewed figure.
 ## Second result: milestone 2 on the public demo
 
 Milestone 2 groups the collected buyer phrases into topics. A topic is what one good page would
-answer, so a page can be matched to it later. On the demo, Claude tagged 860 of the 1,473
-collected phrases as buyer phrases, plain code merged rewordings down to 778, and Claude grouped
-them into 186 named topics, such as "What is the best newsletter software?". The full list is in
+answer, so a page can be matched to it later. On the demo, Claude tagged 855 of the 1,473
+collected phrases as buyer phrases, plain code merged rewordings down to 776, and Claude grouped
+them into 203 named topics, such as "What is the best newsletter software?". The full list is in
 [topics.csv](demo/email-marketing/runs/2026-10-30-0946/topics.csv).
 
 The topics are a working list for the tool, not the result a person reads: the report will rank
 them into a short list of the gaps most worth a page. So the number of topics doesn't matter, and
-71 of them hold a single phrase. What matters is that each topic is one page's worth, checked two
+96 of them hold a single phrase. What matters is that each topic is one page's worth, checked two
 ways:
 
 | Check | Pass mark | Run 1 | Run 2 (published) | Random grouping |
 |---|---|---|---|---|
-| Not split: same-question pairs that share a topic, per question | 85% | 86% | 90% | 1% |
-| Not lumped: random topics one page could answer, judged blind | 36 of 40 | **39** | **34** | |
+| Not split: same-question pairs that share a topic, per question | 85% | 88% | **84%** | 1% |
+| Not lumped: random topics one page could answer, judged blind | 36 of 40 | 38 | 39 | |
 
 **How to read it.** Milestone 2 has not passed yet: it needs both checks to pass on two runs in a
-row, and the lump check passed on one run and missed by two topics on the other. The two runs used
-the same code and the same phrases; Claude's grouping varies from run to run.
+row, and the split check missed by one point on the second run. The two runs used the same code
+and the same phrases; Claude's grouping varies from run to run.
 
 **What the checks measure.**
 - *Not split* uses the 25 answer-key questions the milestone 1 review marked found, and the
-  phrases the judges matched to them (900 pairs). Random grouping into topics of the same sizes
+  phrases the judges matched to them (885 pairs). Random grouping into topics of the same sizes
   scores 1%, so the grouping is doing real work.
 - *Not lumped:* 40 topics with two or more phrases are picked with a fixed seed, and Claude Fable,
   a different model from the one that grouped them, judges each one from its phrases alone. It
   never sees the names or the scores.
 
-**What is still weak.** The same lumps come back across runs. "Is email marketing cheap?", about
-the channel, lands with "cheapest email marketing service", about choosing a tool. "How to do
-email marketing on Shopify" lands with "best email automation for Shopify". Topics about one
-vendor mix setup and pricing. No person has checked the topics.
+**What is still weak.** Some topics are near-duplicates, such as "What are the best email
+automation tools?" next to "What are the best email automation tools and platforms?". Part of the
+split score is lost by design: a question about one vendor ("transactional vs marketing email in
+HubSpot") keeps its own topic even when the answer-key question it matched was general. No person
+has checked the topics.
 
-**How it got here.** The first version asked for one question per topic, read strictly, and judged
-20 topics. It failed (14 of 20), and splitting topics further to satisfy it broke the split check
-too (12 and 15 of 20, with 83% and 80%). The rule changed to one page per topic, closer to what the
-next milestone needs, and the sample grew to 40 topics to cut the noise. That change came after
-seeing the results. Claude Fable also reviewed the topics twice along the way.
+**How it got here.**
+- The first version asked for one question per topic, read strictly, and judged 20 topics. It
+  failed (14 of 20), and splitting topics further to satisfy it broke the split check too (12 and
+  15 of 20, with 83% and 80%).
+- The rule changed to one page per topic, closer to what the next milestone needs, and the sample
+  grew to 40 topics to cut the noise. The lump check then passed once (39) and missed once (34),
+  with the same lumps recurring.
+- A split pass now moves out phrases that a page answering the rest of a topic would not answer.
+  The lump check passed on both runs after it.
+- The rule and the sample size changed after seeing the results. Claude Fable also reviewed the
+  topics twice along the way.
 
-**Cost.** 14 Claude calls, about 4 minutes, $0.67 at list price (covered by a Claude
-subscription), of which $0.24 is the lump check. Every call is in
+**Cost.** 16 Claude calls, about 4.5 minutes, $0.72 at list price (covered by a Claude
+subscription), of which $0.24 is the lump check and $0.06 the split pass. Every call is in
 [trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/trace.jsonl).
 
 ## Status

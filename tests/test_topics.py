@@ -55,3 +55,15 @@ def test_lump_check_counts_a_missing_verdict_as_a_fail(monkeypatch, tmp_path):
     result = t.lump_check(many, tmp_path / "trace.jsonl")
     assert result["one_page"] == 36 and result["passes"] is True
     assert [f["reason"] for f in result["not_one_page"]] == ["r", "r", "r", "no verdict"]
+
+
+def test_apply_splits_moves_phrases_once_and_drops_emptied_topics():
+    from cgm.topics import apply_splits
+    topics = [("Cost?", ["a", "b", "c"]), ("Hours?", ["d"])]
+    splits = [{"topic": 1, "phrases": [2, 3, 9], "name": "Worth it?"},
+              {"topic": 1, "phrases": [3, 1], "name": "Other?"},
+              {"topic": 2, "phrases": [1], "name": "Opening?"},
+              {"topic": 5, "phrases": [1], "name": "Bad?"}]
+    result, made = apply_splits(topics, splits)
+    assert result == [("Worth it?", ["b", "c"]), ("Other?", ["a"]), ("Opening?", ["d"])]
+    assert made == 3

@@ -8,7 +8,9 @@
    page could fully answer every phrase in it. A list up to ONE_PASS phrases is grouped in one
    call; a longer one is split by seed. A merge pass, seeing every topic's phrases, then joins
    topics that mean the same.
-4. Every topic name must be a question; Claude renames the ones that aren't.
+4. A split pass shows Claude each topic of two or more phrases and moves out phrases that a page
+   answering the rest would not answer, into new topics.
+5. Every topic name must be a question; Claude renames the ones that aren't.
 
 Code checks every answer: a phrase assigned twice keeps its first topic, and a phrase left out
 becomes a topic of its own and is counted. With reviewed verdicts, the pair test checks that
@@ -110,6 +112,26 @@ general one.
 Topics:
 {topics}"""
 
+SPLIT_SCHEMA = {"type": "object", "properties": {"splits": {"type": "array", "items": {
+    "type": "object", "properties": {"topic": {"type": "integer"},
+                                     "phrases": {"type": "array", "items": {"type": "integer"}},
+                                     "name": {"type": "string"}},
+    "required": ["topic", "phrases", "name"]}}}, "required": ["splits"]}
+
+SPLIT_PROMPT = """Each numbered topic below is a group of search phrases meant to be answered by one
+good page. For each topic, find the phrases that a page answering the rest would not fully answer,
+and move them out. Common cases: asking about the activity itself ("are piano lessons worth it")
+next to choosing a provider ("cheapest piano school"); how to do it yourself next to which provider
+to pick; setup next to price; two different vendors or products. A variation one page covers in a
+section, such as a device or a free option, stays.
+
+For each group of phrases to move out, give the topic number, the phrase numbers within that topic,
+and a short question ending in "?" as the new topic's name. Phrases moved out together must share
+one page. Leave out topics that are fine.
+
+Topics:
+{topics}"""
+
 RENAME_SCHEMA = {"type": "object", "properties": {"names": {"type": "array", "items": {
     "type": "object", "properties": {"id": {"type": "integer"}, "name": {"type": "string"}},
     "required": ["id", "name"]}}}, "required": ["names"]}
@@ -184,6 +206,38 @@ def apply_merges(topics: list[tuple[str, list[str]]], merges: list[dict]) -> lis
             used.update(ids)
             merged.append((m["name"], [p for n in ids for p in topics[n - 1][1]]))
     return merged + [t for n, t in enumerate(topics, 1) if n not in used]
+
+
+def apply_splits(topics: list[tuple[str, list[str]]], splits: list[dict]) -> tuple[list, int]:
+    """Move phrases out of topics into new named topics. A phrase number outside its topic is
+    dropped, a phrase moves at most once, and a topic emptied by its splits disappears. Returns
+    the topics and how many new topics were made."""
+    taken, new = defaultdict(set), []
+    for sp in splits:
+        if not 1 <= sp["topic"] <= len(topics):
+            continue
+        members = topics[sp["topic"] - 1][1]
+        ids = [n for n in dict.fromkeys(sp["phrases"])
+               if 1 <= n <= len(members) and n not in taken[sp["topic"]]]
+        if ids:
+            taken[sp["topic"]].update(ids)
+            new.append((sp["name"], [members[n - 1] for n in ids]))
+    kept = [(name, [p for i, p in enumerate(members, 1) if i not in taken[n]])
+            for n, (name, members) in enumerate(topics, 1)]
+    return [t for t in kept if t[1]] + new, len(new)
+
+
+def split(topics: list[tuple[str, list[str]]], trace: Path) -> tuple[list, int]:
+    multi = [n for n, (_, members) in enumerate(topics, 1) if len(members) > 1]
+    if not multi:
+        return topics, 0
+    listing = "\n".join(f"Topic {i}: " + "; ".join(f"{j}. {p}" for j, p in enumerate(topics[n - 1][1], 1))
+                         for i, n in enumerate(multi, 1))
+    answer = claude.ask(SPLIT_PROMPT.format(topics=listing), SPLIT_SCHEMA, MODEL, trace, "topics: split")
+    # The answer numbers topics within the list shown; map them back to positions in `topics`.
+    splits = [{**sp, "topic": multi[sp["topic"] - 1]} for sp in answer["splits"]
+              if 1 <= sp["topic"] <= len(multi)]
+    return apply_splits(topics, splits)
 
 
 def nearest_seed(phrase: str, seeds: list[str]) -> str:
@@ -325,10 +379,11 @@ def run(client: Client, run_folder: Path) -> None:
           f"rewordings", flush=True)
 
     topics, missing, before_merge = group(list(variants), list(dict.fromkeys(client.seeds)), trace)
+    topics, split_off = split(topics, trace)
     topics, renamed = ensure_questions(topics, trace)
     topics = sorted(topics, key=lambda t: -sum(len(variants[p]) for p in t[1]))
-    print(f"{before_merge} topics grouped, {len(topics)} after the merge pass; {missing} phrases left "
-          f"out by grouping; {renamed} names fixed", flush=True)
+    print(f"{before_merge} topics grouped, {len(topics)} after merging and splitting ({split_off} split "
+          f"off); {missing} phrases left out by grouping; {renamed} names fixed", flush=True)
 
     topic_of = {}
     with open(run_folder / "topics.csv", "w", newline="", encoding="utf-8") as f:
@@ -343,7 +398,8 @@ def run(client: Client, run_folder: Path) -> None:
     sizes = sorted((sum(len(variants[p]) for p in members) for _, members in topics), reverse=True)
     summary = {"real_phrases": len(real), "buyer_phrases": len(buyers),
                "after_merging_rewordings": len(variants), "topics": len(topics),
-               "topics_before_merge": before_merge, "largest_topics": sizes[:5],
+               "topics_before_merge": before_merge, "topics_split_off": split_off,
+               "largest_topics": sizes[:5],
                "single_phrase_topics": sizes.count(1), "left_out_by_claude": missing,
                "names_fixed": renamed,
                "names_not_questions": sum(not name.strip().endswith("?") for name, _ in topics),

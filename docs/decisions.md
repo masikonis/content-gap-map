@@ -453,8 +453,11 @@ reviewing in a browser is needed often.
 - **Merge pass, always:** a second call sees every topic with its phrases and joins topics one
   page could answer under a new name, without folding a vendor topic into a general one. It also
   catches the phrases the first call left out, which code keeps as their own topics and counts.
+- **Split pass, always:** a third call sees every topic of two or more phrases and moves out the
+  phrases a page answering the rest would not fully answer, into new named topics.
 - **Checks in code:** a phrase assigned twice keeps its first topic; each topic joins at most one
-  merge; a name that is not a question is sent back to be renamed; a last call lists topic pairs
+  merge; a split moves a phrase at most once, and a topic it empties disappears; a name that is not
+  a question is sent back to be renamed; a last call lists topic pairs
   that may still be duplicates, reported and not acted on.
 
 **Alternatives:**
@@ -472,7 +475,10 @@ reviewing in a browser is needed often.
 exact rewordings is a job for code; deciding what one page answers is a job for Claude. Vendor
 topics and one-phrase topics cost nothing, since the report ranks them low. Claude Fable reviewed
 the topics twice; the one-pass grouping, the always-on merge, question names and the random
-baseline came from those reviews. What it costs: topics are less precise than one question, so a
+baseline came from those reviews. The split pass came from the lump check: the same lumps
+(asking whether email marketing is cheap next to choosing the cheapest tool) came back on every
+run even with the grouping rule naming them, and grouping alone passed the lump check once in two
+runs. What it costs: topics are less precise than one question, so a
 page matched to a topic may cover some of its phrases better than others.
 
 ## 2026-10-30: Topics are a full working list; the report ranks them later
