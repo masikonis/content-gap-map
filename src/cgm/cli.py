@@ -14,7 +14,8 @@ def main() -> None:
     step = steps.add_parser("autocomplete", help="collect Google autocomplete suggestions (starts a new run)")
     step.add_argument("client", help="client folder under private/, or a path such as demo/email-marketing")
 
-    for name, help_text in [("searchconsole", "import Search Console exports into a run"),
+    for name, help_text in [("brands", "add brand searches to a run collected before they existed"),
+                            ("searchconsole", "import Search Console exports into a run"),
                             ("websearch", "find questions people wrote online, and verify them"),
                             ("predicted", "predict questions buyers ask AI assistants (never counted as demand)"),
                             ("score", "score a run against the answer key"),
@@ -34,7 +35,9 @@ def main() -> None:
     if not runs:
         raise SystemExit(f"No runs in {client.folder / 'runs'}. Start one with: cgm autocomplete {args.client}")
     folder = client.folder / "runs" / args.run if args.run else runs[-1]
-    if args.step == "searchconsole":
+    if args.step == "brands":
+        autocomplete.add_brands(client, folder)
+    elif args.step == "searchconsole":
         searchconsole.run(client, folder)
     elif args.step == "websearch":
         websearch.run(client, folder)

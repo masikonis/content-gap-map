@@ -112,13 +112,17 @@ place to keep in sync, and environment files suit secrets, not lists of sites.
 questions in an answer key: Google's "People also ask" questions for each seed. The key is
 collected once per test client in a real browser session, one search at a time, by Claude in
 Nerijus's Chrome, never by the tool itself. Questions that appear under several seeds count once.
-Each question is tagged as a buyer question or not, and the headline score is the share of buyer
-questions the collector finds, matched by meaning rather than exact words, with the share of all
-questions reported next to it. **The target is 75% of buyer questions,** found by the default
-sources together, on a score a person has reviewed. Predicted questions never count toward it.
+Each question is tagged as a buyer question or not, and each buyer question's funnel stage is
+marked by Claude Sonnet and, blind, by Claude Fable (saved in `answer-key/stage-tags.csv`). The
+headline score is the share of commercial buyer questions (comparing or choosing, by Sonnet's
+marks) the collector finds, matched by meaning rather than exact words, with the share under
+Fable's marks and the share of all buyer questions reported next to it. **The target is 75% of
+commercial buyer questions,** found by the default sources together, on a reviewed score.
+Predicted questions never count toward it.
 
 **Alternatives:** no answer key, judging the collector's output by reading it; the site's own
-Search Console searches as the answer key; scoring all questions alike.
+Search Console searches as the answer key; scoring all questions alike; scoring buyer questions
+at every stage, as the first published result did.
 
 **Why:** "it works" needs a number, and every later milestone stands on this one. "People also
 ask" is the closest public view of what buyers ask, and none of the collector's sources can see
@@ -131,7 +135,9 @@ Nerijus's call. That test showed what the real sources can reach: autocomplete a
 Console together found about 75%, and nearly every miss was a conversational "why" or "what
 happens if" question that people ask AI assistants rather than type as searches. No real,
 free source holds those, so a higher bar would measure the limits of search data rather than of
-the tool. The AI-style gap is covered by predicted questions, reported separately.
+the tool. The AI-style gap is covered by predicted questions, reported separately. The target
+moved from all buyer questions to commercial ones when the tool dropped the learning stage, so
+that milestone 1 measures what the tool is for; it was not raised, though the result rose.
 
 ## 2026-10-28: The collector uses autocomplete and Search Console; web search is optional
 
@@ -183,6 +189,10 @@ stays open source and the project file is standard, so leaving it is easy.
 - **Expansion:** each seed alone, with question words before and after it ("how much …",
   "… cost", "… vs"), and with a to z after it. About 55 requests per seed. Results are not
   expanded again.
+- **Brand searches:** each compared business's name from the client file (the client's and its
+  competitors'), with question words before it, the profile's brand words after it ("pricing",
+  "alternatives", "vs", "reviews") and a to z. About 54 requests per business. `cgm brands` adds
+  them to a run collected before they existed.
 - **Pace and identity:** one request every 2 seconds, an honest crawler name with a link to this
   repository, backing off when asked to slow down, and stopping with a "blocked" report rather
   than working around a block.
@@ -193,7 +203,8 @@ stays open source and the project file is standard, so leaving it is easy.
 - **Running it:** one command, `uv run cgm autocomplete <client>`, which later steps join as
   sub-commands.
 
-**Alternatives:** the "firefox" format (10 suggestions, no scores); the seed alone, or question
+**Alternatives:** brand seeds listed by hand in the client file; the "firefox" format (10
+suggestions, no scores); the seed alone, or question
 words without a to z; expanding the best suggestions again; faster requests or a browser-like
 identity; filtering while collecting; JSON lines instead of CSV; a standalone script.
 
@@ -203,7 +214,11 @@ requests are a lab rule, and a block is reported rather than hidden. Keeping the
 bad filter can't silently drop real questions. CSV matches the answer key and opens anywhere. A
 single command keeps every step of the tool in one place. Two test calls showed that the country
 setting is only a hint: suggestions for other countries come back too, so location filtering
-belongs in the later filtering step.
+belongs in the later filtering step. Category seeds alone never reached choosing-stage searches
+such as "mailchimp pricing": the first demo collection missed every question that named the
+client. Brand searches come from the names already in the client file, so a client needs nothing
+extra; Claude picked this when Nerijus asked for the fix, as the simplest version, and it can
+change.
 
 ## 2026-10-28: httpx for requests, pytest for tests
 
@@ -504,15 +519,20 @@ readable result until milestone 5.
 
 ## 2026-10-30: The milestone 2 target, and how it is checked
 
-**Chose:** each topic is what one page would answer, checked two ways on every run.
-- **Not split:** in a reviewed run, phrases the judges matched to the same answer-key question
-  should share a topic. At least 85% of those pairs must, with each question counted equally, and
-  the same share for a random grouping of the same topic sizes is reported next to it.
-- **Not lumped:** at least 36 of 40 topics, picked with a fixed seed from topics of two or more
-  phrases (a single phrase can't be lumped), must be ones one page could fully answer. Claude
-  Fable judges them blind: it sees the phrases, not the names or scores. A missing verdict is a
-  fail.
-- Milestone 2 passes when both checks pass on two runs in a row.
+**Chose:** each kept topic is what one page would answer, with the right funnel stage, checked
+three ways on every run.
+- **Not split:** in a reviewed run, phrases the judges matched to the same commercial answer-key
+  question should share a topic. At least 85% of those pairs must, with each question counted
+  equally, and the same share for a random grouping of the same topic sizes is reported next to
+  it.
+- **Not lumped:** at least 36 of 40 kept topics, picked with a fixed seed from topics of two or
+  more phrases (a single phrase can't be lumped), must be ones one page could fully answer.
+  Claude Fable judges them blind: it sees the phrases, not the names or scores. A missing verdict
+  is a fail.
+- **Right stage:** Claude Fable marks the stage of 40 topics picked with a fixed seed, without
+  seeing the first marks; at least 36 must agree on keep or drop. A missing verdict is a fail.
+- Milestone 2 passes when all three checks pass on two runs in a row, because Claude's grouping
+  varies from run to run. Claude proposed this rule; it is not yet confirmed.
 
 **Alternatives:** the split check alone, which a tool that dumps everything into a few huge topics
 would pass; judging 20 topics, too noisy (the same code scored 12 and 15 of 20 on two runs);
@@ -522,7 +542,10 @@ grouping already scores 98% on, so it says little.
 
 **Why:** lumping is the failure that would hurt the report most, since a lumped topic hides a
 real gap, and the split check can't see it. An outside model that never sees the scores is the
-cheapest honest judge. What it costs: about $0.24 per run, and the judge is still an AI.
+cheapest honest judge. A wrong stage mark drops a commercial topic for good, so the stage needs
+its own check. Learning topics never reach the report, so the split and lump checks look only at
+commercial questions and kept topics. What it costs: about $0.45 per run for the two blind
+checks, and the judge is still an AI.
 
 The target was set after the first results and changed once: the first version asked for one
 question per topic, judged 20 topics and needed 18 of them.
@@ -538,7 +561,10 @@ question per topic, judged 20 topics and needed 18 of them.
   provider. Collection stays broad; the stage is marked right after grouping, and learning-stage
   topics stay in topics.csv as evidence but are dropped from every later step. How to do something
   in a tool the buyer already uses ("how to send transactional email in HubSpot") counts as
-  learning: it is support, not a buying decision.
+  learning: it is support, not a buying decision. What one named provider offers, or whether it
+  can be trusted ("does MailerLite have an app", "is MailerLite safe"), counts as choosing. One
+  rule (`stage.py`) marks both answer-key questions and topics, so milestones 1 and 2 count the
+  same thing.
 - **An answer counts only with proof.** A page answers a topic when it answers it in detail and
   backs it with expertise that can't be faked: case studies, project details, real prices, or
   other proof of having done the work. A page that answers in general terms is a gap too, and

@@ -54,3 +54,16 @@ def test_an_unknown_site_type_is_refused(tmp_path):
     (tmp_path / "client.toml").write_text(example.read_text().replace('"services"', '"servicez"'))
     with pytest.raises(SystemExit, match="servicez"):
         load_client(tmp_path)
+
+
+def test_brand_queries_cover_each_compared_business_once():
+    from cgm.autocomplete import brand_queries
+    from cgm.client import Client, Site
+    client = Client(Path("x"), "x", "b2b-software", "en", "us", ["piano software"],
+                    Site("Acme", "https://acme.example"),
+                    [Site("Keys", "https://keys.example"), Site("Acme", "https://acme.example")])
+    queries = brand_queries(client)
+    assert {name for name, _ in queries} == {"Acme", "Keys"}
+    texts = [q for _, q in queries]
+    assert "acme pricing" in texts and "is keys" in texts and "keys z" in texts
+    assert len(texts) == len(set(texts))

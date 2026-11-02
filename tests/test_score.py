@@ -111,3 +111,16 @@ def test_headline_uses_real_phrases_and_predicted_shares_use_the_extended_pass()
     assert summary["share_found_buyer"] == 0.5
     assert summary["share_found_buyer_by_source"]["all sources, with predicted"] == 1.0
     assert summary["buyer_questions_only_one_source_found"]["predicted"] == ["b"]
+
+
+def test_commercial_counts_only_comparing_and_choosing_questions():
+    from cgm.score import commercial
+    first = [{"question": q, "found": True, "matches": ["typed"] if q != "c" else []} for q in "abc"]
+    stages = {"a": {"stage": "learning", "judge_stage": "learning"},
+              "b": {"stage": "choosing", "judge_stage": "learning"},
+              "c": {"stage": "comparing", "judge_stage": "comparing"}}
+    result = commercial(first, stages, {"typed": {"autocomplete"}}, {"a": True, "b": True, "c": False})
+    assert result["marked_by_tagger"] == {"questions": 2, "share_found_by_judges": 0.5,
+                                          "found_after_review": 1, "share_found_after_review": 0.5}
+    assert result["marked_by_outside_model"]["questions"] == 1
+    assert result["stage_marks_differ_on_keep_or_drop"] == ["b"]

@@ -2,8 +2,9 @@
 
 Each unique answer-key question is checked against a shortlist of what the sources found: every
 phrase that contains the most specific word of one of the question's seeds, plus the phrases that
-share the most words with the question itself. Each match is credited to the sources that found it. Questions are tagged once as buyer questions or not, and the headline score counts buyer
-questions only. Two passes by the main judge measure how often verdicts flip, and one pass by a
+share the most words with the question itself. Each match is credited to the sources that found
+it. Questions are tagged once as buyer questions or not, and each buyer question's funnel stage is
+marked once by two models; the commercial score counts comparing and choosing questions only. Two passes by the main judge measure how often verdicts flip, and one pass by a
 second judge shows where the two disagree, for a person to review.
 """
 
@@ -13,7 +14,7 @@ import math
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from cgm import claude
+from cgm import claude, stage
 from cgm.client import Client
 from cgm.files import read_rows
 from cgm.profiles import profile
@@ -22,6 +23,7 @@ from cgm.text import seed_words, words
 JUDGE = "sonnet"
 SECOND_JUDGE = "opus"
 TAGGER = "sonnet"
+STAGE_JUDGE = "fable"  # marks every buyer question's stage blind, as a check on the tagger
 BATCH = 15
 JUDGE_BATCH = 5
 OVERLAP = 100
@@ -148,6 +150,43 @@ def tag_buyers(client: Client, questions: list[str], trace: Path) -> dict[str, d
     return tags
 
 
+def tag_stages(client: Client, questions: list[str], trace: Path) -> dict[str, dict]:
+    """Mark each buyer question's stage once with the tagger and once with an outside model, and
+    save both beside the answer key. The tagger's mark is the one used."""
+    path = client.folder / "answer-key" / "stage-tags.csv"
+    if path.exists():
+        saved = {row["question"]: row for row in read_rows(path)}
+        if all(q in saved for q in questions):
+            return {q: {"stage": saved[q]["stage"], "judge_stage": saved[q]["judge_stage"]}
+                    for q in questions}
+    marks = stage.mark(questions, TAGGER, trace, "stage of buyer questions")
+    checks = stage.mark(questions, STAGE_JUDGE, trace, "stage of buyer questions, check")
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["question", "stage", "judge_stage"])
+        writer.writerows(zip(questions, marks, checks))
+    return {q: {"stage": m, "judge_stage": c} for q, m, c in zip(questions, marks, checks)}
+
+
+def commercial(first: list[dict], stages: dict[str, dict], sources: dict[str, set[str]],
+               truth: dict[str, bool]) -> dict:
+    """The share of commercial buyer questions found, by the judges and, when there is a review, by
+    the review; each under the tagger's stage marks and under the outside model's."""
+    def under(key: str) -> dict:
+        qs = {q for q, s in stages.items() if stage.kept(s[key])}
+        rows = [r for r in first if r["question"] in qs]
+        result = {"questions": len(qs),
+                  "share_found_by_judges": share(rows, lambda r: found_by(r, sources, VERIFIED))}
+        if truth:
+            reviewed = [truth[q] for q in qs if q in truth]
+            result["found_after_review"] = sum(reviewed)
+            result["share_found_after_review"] = round(sum(reviewed) / len(reviewed), 3) if reviewed else None
+        return result
+    differ = [q for q, s in stages.items() if stage.kept(s["stage"]) != stage.kept(s["judge_stage"])]
+    return {"marked_by_tagger": under("stage"), "marked_by_outside_model": under("judge_stage"),
+            "stage_marks_differ_on_keep_or_drop": differ}
+
+
 def check(results: list[dict], questions: list[str], phrases: list[str]) -> list[dict]:
     """Keep one verdict per question; phrase numbers outside the list are dropped, and a match
     left with no valid phrase is a miss."""
@@ -218,8 +257,15 @@ def run(client: Client, run_folder: Path) -> None:
     questions = list(key)
     trace = run_folder / "trace.jsonl"
     tags = tag_buyers(client, questions, trace)
+    reviewed = run_folder / "reviewed.csv"
+    review = read_rows(reviewed) if reviewed.exists() else []
+    # The review's buyer tag, where there is one, decides which questions are buyer ones.
+    buyer = {**{q: t["buyer"] for q, t in tags.items()},
+             **{r["question"]: r["buyer"] == "True" for r in review if r.get("buyer")}}
+    stages = tag_stages(client, [q for q in questions if buyer.get(q)], trace)
 
-    seeds = list(dict.fromkeys(client.seeds + [s for own in key.values() for s in own]))
+    brands = [site.name.lower() for site in [client.primary] + client.competitors]
+    seeds = list(dict.fromkeys(client.seeds + brands + [s for own in key.values() for s in own]))
     # The headline passes see real demand only, so predicted or unverified phrases can't crowd
     # real ones out of a shortlist. One more pass over everything gives the "with" shares.
     real = [p for p in phrases if sources[p] & VERIFIED]
@@ -256,16 +302,16 @@ def run(client: Client, run_folder: Path) -> None:
                                  " | ".join(b["matches"]), b["reason"]])
 
     summary = summarize(passes, tags, sources)
-    reviewed = run_folder / "reviewed.csv"
-    if reviewed.exists():
+    truth = {}
+    if review:
         # A review covers the sources named in its "sources" column (autocomplete if absent), so
         # judges are compared on matches from those sources only.
-        review = read_rows(reviewed)
-        covered = set((review[0].get("sources") or "autocomplete").split("; ")) if review else set()
+        covered = set((review[0].get("sources") or "autocomplete").split("; "))
         truth = {r["question"]: r["found"] == "True" for r in review}
         summary["accuracy_against_reviewed"] = {
             name: accuracy([{**r, "found": found_by(r, sources, covered)} for r in rows], truth)
             for name, rows in passes.items() if name != "with predicted and unverified"}
+    summary["commercial"] = commercial(passes["judge pass 1"], stages, sources, truth)
     (run_folder / "score-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
 

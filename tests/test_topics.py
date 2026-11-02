@@ -41,10 +41,12 @@ def test_pair_test_scores_against_a_random_baseline():
 
 def test_lump_sample_skips_single_phrase_topics_and_is_repeatable():
     from cgm.topics import lump_sample
-    topics = [(f"t{n}?", ["a", "b"] if n % 2 else ["a"]) for n in range(1, 121)]
-    picked = lump_sample(topics)
-    assert len(picked) == 40 and picked == lump_sample(topics)
-    assert all(n % 2 for n in picked)
+    topics = [(f"t{n}?", ["a", "b"] if n % 2 else ["a"]) for n in range(1, 161)]
+    # Every fourth odd topic is learning stage, so it is dropped and never picked.
+    marked = ["learning" if n % 8 == 1 else "comparing" for n in range(1, 161)]
+    picked = lump_sample(topics, marked)
+    assert len(picked) == 40 and picked == lump_sample(topics, marked)
+    assert all(n % 2 and n % 8 != 1 for n in picked)
 
 
 def test_lump_check_counts_a_missing_verdict_as_a_fail(monkeypatch, tmp_path):
@@ -52,7 +54,7 @@ def test_lump_check_counts_a_missing_verdict_as_a_fail(monkeypatch, tmp_path):
     many = [(f"t{n}?", ["a", "b"]) for n in range(1, 41)]
     answer = {"topics": [{"id": i, "one_page": i not in (2, 3, 4), "reason": "r"} for i in range(1, 40)]}
     monkeypatch.setattr(t.claude, "ask", lambda *a, **k: answer)
-    result = t.lump_check(many, tmp_path / "trace.jsonl")
+    result = t.lump_check(many, ["choosing"] * 40, tmp_path / "trace.jsonl")
     assert result["one_page"] == 36 and result["passes"] is True
     assert [f["reason"] for f in result["not_one_page"]] == ["r", "r", "r", "no verdict"]
 
@@ -81,3 +83,12 @@ def test_stage_check_counts_keep_or_drop_agreement(monkeypatch, tmp_path):
     # It differs on the 10 learning topics, and the missing verdict counts as a difference.
     assert result["same_keep_or_drop"] == 29 and result["passes"] is False
     assert result["same_stage"] == 0
+
+
+def test_stage_mark_keeps_an_item_with_no_verdict(monkeypatch, tmp_path):
+    from cgm import stage
+    monkeypatch.setattr(stage.claude, "ask", lambda *a, **k: {"stages": [{"id": 1, "stage": "learning"},
+                                                                          {"id": 9, "stage": "choosing"}]})
+    marks = stage.mark(["what is x", "x pricing"], "sonnet", tmp_path / "trace.jsonl", "test")
+    assert marks == ["learning", "unknown"]
+    assert [stage.kept(m) for m in marks] == [False, True]

@@ -1,6 +1,6 @@
 """Site-type profiles: what differs between kinds of business, kept out of the core.
 
-A profile holds the words that expand a seed for autocomplete, the rule for what counts as a buyer
+A profile holds the words that expand a seed or a brand name for autocomplete, the rule for what counts as a buyer
 question, and the angles for predicted questions. A site type without its own profile uses
 "generic". Adding a site type means adding one entry here.
 """
@@ -15,6 +15,7 @@ QUESTION_WORDS = ["how", "how much", "how to", "what", "why", "when", "where", "
 class Profile:
     before: list[str]      # words put before a seed for autocomplete
     after: list[str]       # words put after a seed for autocomplete
+    brand: list[str]       # words put after a compared business's name, for choosing-stage searches
     buyer: str             # what counts as a buyer question, for the tagger
     angles: str            # what predicted questions should cover
 
@@ -22,6 +23,7 @@ class Profile:
 SERVICES = Profile(
     before=QUESTION_WORDS,
     after=["cost", "price", "vs", "near me", "for", "with", "without", "worth it", "or", "and"],
+    brand=["cost", "price", "prices", "reviews", "complaints", "vs", "alternatives", "near me", "or"],
     buyer="""one a person would ask while deciding whether, when or whom to hire for these services
 (price, value, what is included, how often, which option, what to expect). It is not a buyer
 question if it is about doing the job yourself, buying equipment or supplies, running or pricing a
@@ -34,6 +36,8 @@ B2B_SOFTWARE = Profile(
     before=QUESTION_WORDS + ["best", "top", "cheapest", "types of"],
     after=["pricing", "cost", "vs", "alternatives", "for small business", "features", "types",
            "disadvantages", "reviews", "free", "per user", "integration", "comparison", "or", "and"],
+    brand=["pricing", "cost", "price", "per month", "free plan", "free", "alternatives", "competitors",
+           "vs", "reviews", "limits", "or"],
     buyer="""one a person or business would ask while researching, comparing, choosing, buying,
 switching or setting up software in this category: what it is and what it does, the types,
 features, the best options, pricing, comparisons and alternatives (including named vendors),
@@ -49,6 +53,7 @@ GENERIC = Profile(
     before=QUESTION_WORDS,
     after=["cost", "price", "vs", "best", "alternatives", "for", "with", "without", "worth it",
            "or", "and"],
+    brand=["price", "cost", "reviews", "vs", "alternatives", "or"],
     buyer="""one a person would ask while deciding whether, what and from whom to buy or use what
 this business offers (what it is, price, value, options, comparisons, risks, what to expect). It
 is not a buyer question if it is about doing it yourself, an unrelated product, running a business

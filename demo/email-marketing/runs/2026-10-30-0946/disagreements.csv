@@ -1,3 +1,3 @@
 question,buyer,sonnet found,sonnet match,sonnet reason,opus found,opus match,opus reason
-What is the easiest way to create a newsletter?,True,True,what is the best program to create a newsletter | what software to use for newsletter | which software is best for creating a newsletter | software for creating newsletter,Phrases ask which software/program to use to create a newsletter.,False,,No phrase asks for the easiest way to create a newsletter.
-What are the three types of emails?,False,False,,No phrase asks the three main email types generally.,True,types of email categories,Types of email categories asks the same.
+What are the best newsletter templates?,False,True,newsletter template software | software newsletter template,Generic newsletter template phrases match best templates loosely.,False,,Template phrases are brand-specific or about software.
+What are the three types of emails?,False,False,,No phrase asks the three main email types specifically.,True,types of email categories,"Asks for general email categories, same as types of emails."

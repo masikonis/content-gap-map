@@ -33,7 +33,8 @@
   `PageFetcher` for untrusted URLs (public addresses only, robots.txt, redirects re-checked,
   2 MB cap).
 - `src/cgm/files.py`: reads a run's CSV files as UTF-8.
-- `src/cgm/autocomplete.py`: Google autocomplete collector. Plain code, raw replies kept.
+- `src/cgm/autocomplete.py`: Google autocomplete collector for the seeds and for each compared
+  business's name (brand searches). Plain code, raw replies kept.
 - `src/cgm/searchconsole.py`: imports Search Console CSV exports (client's own site only) into a
   run. Exports are made by hand or with the Chrome connector, one per filter, each under 1,000 rows.
   Marks queries that look typed by an AI assistant (`ai_style`) and writes `ai-demand.md`, a
@@ -47,11 +48,14 @@
   topics are kept in topics.csv but dropped from every later step; the tool covers only comparing
   and choosing. Runs the pair test when the run has reviewed verdicts, and has Claude Fable judge
   40 random topics blind for lumping and for stage (the lump and stage checks).
+- `src/cgm/stage.py`: the funnel-stage rule (learning, comparing, choosing), shared by scoring and
+  grouping. Only learning is dropped.
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
 - `src/cgm/claude.py`: the only place Claude is called. Trimmed `claude -p` with a JSON schema;
   every call appends a line to the run's `trace.jsonl`.
-- `src/cgm/score.py`: milestone 1 scorer. Seed-word shortlists per question, buyer tags, two
-  judges, per-source shares, accuracy against reviewed verdicts.
+- `src/cgm/score.py`: milestone 1 scorer. Seed-word shortlists per question, buyer tags, stage
+  marks (Sonnet, checked by Fable), two judges, per-source shares, the commercial score, and
+  accuracy against reviewed verdicts.
 - `demo/email-marketing/`: the public demo (Mailchimp vs Brevo and MailerLite). Public data only;
   every command takes `demo/email-marketing` in place of a client name.
 - `tests/`: made-up data only, never a live service.
@@ -60,7 +64,8 @@
 
 ```
 uv run pytest                          # tests
-uv run cgm autocomplete <client>       # starts a new run folder
+uv run cgm autocomplete <client>       # starts a new run folder (seeds and brand searches)
+uv run cgm brands <client>             # adds brand searches to a run collected before them
 uv run cgm searchconsole <client>      # merges the client's Search Console zips into the latest run
 uv run cgm websearch <client>          # optional: adds to the latest run (or --run <name>)
 uv run cgm predicted <client>          # optional: predicted AI-style questions, never demand
@@ -77,7 +82,7 @@ Client data lives under `private/` (gitignored); the public demo uses the same l
 private/blocklist.txt          terms the local pre-commit hook refuses to commit
 <client>/client.toml           sites, seeds, language, country, site type
 <client>/decisions.md          decisions and findings about this client (private clients only)
-<client>/answer-key/           "People also ask" questions, and buyer-tags.csv
+<client>/answer-key/           "People also ask" questions, buyer-tags.csv and stage-tags.csv
 <client>/search-console/       Search Console export zips, one per filter (own site only)
 <client>/runs/<date-time>/     one folder per run:
     autocomplete.csv, responses/       collected suggestions and Google's raw replies

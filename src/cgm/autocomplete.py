@@ -1,7 +1,10 @@
-"""Collect Google autocomplete suggestions for a client's seeds.
+"""Collect Google autocomplete suggestions for a client's seeds and the businesses it compares.
 
-Each seed is expanded with question words and a to z, sent to Google's autocomplete one request
-every 2 seconds, and every suggestion is saved raw. Filtering happens in a later step.
+Each seed is expanded with question words and a to z, and each business name (the client's and
+its competitors') with question words, the profile's brand words ("pricing", "alternatives") and a
+to z, because category seeds alone never reach choosing-stage searches such as "acme pricing".
+Queries go to Google's autocomplete one request every 2 seconds, and every suggestion is saved raw.
+Filtering happens in a later step.
 """
 
 import csv
@@ -15,7 +18,8 @@ import httpx
 
 from cgm.client import Client
 from cgm.fetch import PAUSE, http_client
-from cgm.profiles import Profile, profile
+from cgm.files import read_rows
+from cgm.profiles import QUESTION_WORDS, Profile, profile
 
 URL = "https://suggestqueries.google.com/complete/search"
 BACKOFF = 60.0
@@ -30,6 +34,21 @@ def expand(seed: str, site: Profile) -> list[str]:
             + [f"{word} {seed}" for word in site.before]
             + [f"{seed} {word}" for word in site.after]
             + [f"{seed} {letter}" for letter in string.ascii_lowercase])
+
+
+def expand_brand(name: str, site: Profile) -> list[str]:
+    """The name alone, with question words before it, and with brand words and a to z after it."""
+    name = name.lower()
+    return ([name]
+            + [f"{word} {name}" for word in QUESTION_WORDS]
+            + [f"{name} {word}" for word in site.brand]
+            + [f"{name} {letter}" for letter in string.ascii_lowercase])
+
+
+def brand_queries(client: Client) -> list[tuple[str, str]]:
+    site = profile(client.site_type)
+    names = dict.fromkeys(s.name for s in [client.primary] + client.competitors)
+    return [(name, q) for name in names for q in expand_brand(name, site)]
 
 
 def parse(reply: list) -> list[tuple[str, int | None]]:
@@ -61,14 +80,34 @@ def run(client: Client) -> Path:
     out = client.folder / "runs" / datetime.now().strftime("%Y-%m-%d-%H%M%S")
     (out / "responses").mkdir(parents=True)
     site = profile(client.site_type)
-    queries = [(seed, q) for seed in client.seeds for q in expand(seed, site)]
+    queries = [(seed, q) for seed in client.seeds for q in expand(seed, site)] + brand_queries(client)
+    collect(client, out, queries)
+    print(f"Saved to {out}")
+    return out
+
+
+def add_brands(client: Client, out: Path) -> None:
+    """Add the brand searches to a run that was collected before they existed."""
+    done = {row["seed"] for row in read_rows(out / "autocomplete.csv")}
+    queries = [(name, q) for name, q in brand_queries(client) if name not in done]
+    if not queries:
+        print("This run already has the brand searches.")
+        return
+    collect(client, out, queries)
+
+
+def collect(client: Client, out: Path, queries: list[tuple[str, str]]) -> None:
+    """Send the queries and append every suggestion to the run's autocomplete.csv."""
+    path = out / "autocomplete.csv"
+    new_file = not path.exists()
+    first = len(list((out / "responses").glob("*.json"))) + 1
     requests, rows, started = 0, 0, time.monotonic()
     unique = set()
 
-    with (http_client(timeout=10.0) as http,
-          open(out / "autocomplete.csv", "w", newline="", encoding="utf-8") as f):
+    with (http_client(timeout=10.0) as http, open(path, "a", newline="", encoding="utf-8") as f):
         writer = csv.writer(f)
-        writer.writerow(["seed", "query", "suggestion", "rank", "relevance", "time"])
+        if new_file:
+            writer.writerow(["seed", "query", "suggestion", "rank", "relevance", "time"])
         for n, (seed, query) in enumerate(queries, 1):
             try:
                 reply = fetch(http, query, client.language, client.country)
@@ -76,7 +115,7 @@ def run(client: Client) -> Path:
                 print(f"Blocked after {n - 1} of {len(queries)} requests: {stop}")
                 break
             requests += 1
-            (out / "responses" / f"{n:04d}.json").write_text(
+            (out / "responses" / f"{first + n - 1:04d}.json").write_text(
                 json.dumps({"query": query, "reply": reply}, ensure_ascii=False), encoding="utf-8")
             at = datetime.now().isoformat(timespec="seconds")
             for rank, (text, relevance) in enumerate(parse(reply), 1):
@@ -88,5 +127,3 @@ def run(client: Client) -> Path:
 
     minutes = (time.monotonic() - started) / 60
     print(f"Done: {requests} requests, {rows} suggestions, {len(unique)} unique, {minutes:.1f} min.")
-    print(f"Saved to {out}")
-    return out

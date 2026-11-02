@@ -1,90 +1,107 @@
 {
-  "real_phrases": 1473,
-  "buyer_phrases": 837,
-  "after_merging_rewordings": 763,
-  "topics": 217,
-  "topics_before_merge": 214,
-  "topics_split_off": 11,
+  "real_phrases": 3355,
+  "buyer_phrases": 2025,
+  "after_merging_rewordings": 1876,
+  "topics": 551,
+  "topics_before_merge": 482,
+  "topics_split_off": 106,
   "largest_topics": [
-    30,
-    29,
-    25,
-    24,
-    23
+    44,
+    38,
+    32,
+    32,
+    32
   ],
-  "single_phrase_topics": 94,
-  "left_out_by_claude": 8,
-  "names_fixed": 1,
+  "single_phrase_topics": 244,
+  "left_out_by_claude": 11,
+  "names_fixed": 7,
   "names_not_questions": 0,
-  "possible_duplicate_topic_pairs": 9,
+  "possible_duplicate_topic_pairs": 51,
   "topics_by_stage": {
-    "learning": 91,
-    "comparing": 84,
-    "choosing": 42,
+    "learning": 193,
+    "comparing": 142,
+    "choosing": 216,
     "unknown": 0
   },
   "phrases_by_stage": {
-    "learning": 279,
-    "comparing": 418,
-    "choosing": 140,
+    "learning": 658,
+    "comparing": 567,
+    "choosing": 800,
     "unknown": 0
   },
-  "kept_topics": 126,
+  "kept_topics": 358,
   "pair_test": {
-    "questions": 25,
-    "same_question_pairs": 890,
-    "share_together": 0.896,
-    "share_together_per_question": 0.819,
-    "share_apart": 0.996,
+    "questions": 17,
+    "same_question_pairs": 1087,
+    "share_together": 0.925,
+    "share_together_per_question": 0.916,
+    "share_apart": 1.0,
     "random_baseline": {
-      "share_together": 0.016,
-      "share_together_per_question": 0.008,
-      "share_apart": 0.987
+      "share_together": 0.006,
+      "share_together_per_question": 0.005,
+      "share_apart": 0.995
     }
   },
-  "split_check_passes": false,
+  "split_check_passes": true,
   "lump_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "one_page": 38,
-    "passes": true,
+    "one_page": 35,
+    "passes": false,
     "not_one_page": [
       {
-        "topic": "How to automate sales and lead outreach emails?",
-        "reason": "'what is cold email automation' is a definition, 'free cold email marketing software' is a tool list, and 'email lead automation' / 'email automation for sales' are broader sales-automation topics; these need different pages."
+        "topic": "What does Brevo offer for transactional email?",
+        "reason": "Mixes intents: 'brevo transactional email pricing' is cost, 'send transactional email brevo' and 'brevo transactional email template' are setup how-tos, 'what are transactional emails in brevo' is definitional."
       },
       {
-        "topic": "How to do email automation in Zoho?",
-        "reason": "'zoho email automation pricing' is a price question while 'zoho email automation workflow' and 'email automation in zoho crm' are setup/how-to; price and setup need different pages."
+        "topic": "How to do cold email outreach automation?",
+        "reason": "'email automation linkedin' is about LinkedIn outreach automation, a different channel from the cold email automation phrases."
+      },
+      {
+        "topic": "What is the best email marketing software for SaaS?",
+        "reason": "'is email marketing saas' asks whether email marketing is a SaaS category, unlike the phrases seeking email marketing software for SaaS companies."
+      },
+      {
+        "topic": "Mailchimp vs Squarespace email campaigns?",
+        "reason": "'mailchimp vs squarespace email campaigns' is a comparison, while 'how much is email marketing on squarespace' is a vendor pricing question."
+      },
+      {
+        "topic": "How does Mailchimp compare to other tools?",
+        "reason": "'mailchimp vs' is a generic alternatives query, while 'mailerlite vs mailchimp vs constant contact' is a specific three-way comparison."
       }
     ]
   },
   "stage_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "same_keep_or_drop": 36,
-    "same_stage": 34,
-    "passes": true,
+    "same_keep_or_drop": 35,
+    "same_stage": 31,
+    "passes": false,
     "keep_or_drop_differs": [
       {
-        "topic": "What is SuperMailer newsletter software?",
+        "topic": "Does Mailchimp integrate with Zoho?",
         "marked": "choosing",
         "judge": "learning"
       },
       {
-        "topic": "Does Hetzner offer transactional email?",
+        "topic": "Do Mailchimp accounts expire?",
         "marked": "choosing",
         "judge": "learning"
       },
       {
-        "topic": "What features does email marketing software have?",
-        "marked": "comparing",
+        "topic": "What is MailerLite EU?",
+        "marked": "learning",
+        "judge": "choosing"
+      },
+      {
+        "topic": "How does Brevo integrate with ZoomInfo?",
+        "marked": "choosing",
         "judge": "learning"
       },
       {
-        "topic": "Is SuperMailer newsletter software flagged as spam?",
-        "marked": "choosing",
-        "judge": "learning"
+        "topic": "How do you create a Brevo account?",
+        "marked": "learning",
+        "judge": "choosing"
       }
     ]
   }

@@ -1,13 +1,13 @@
 question,buyer,found,evidence,intent_group,judge_found,tool_tag,note,reviewed
 Which email marketing software is best?,True,True,best email marketing software,,True,True,,all verdicts
-Why are people leaving Mailchimp?,True,False,,,False,True,,all verdicts
+Why are people leaving Mailchimp?,True,False,,,True,True,"kept as not found: after the brand searches the judges matched ""why is mailchimp so bad"", but Claude Fable objected that complaints are not the reasons people switch; the stricter call is kept",all verdicts
 What is the 60/40 rule in email?,False,False,,,False,False,,tag only
 Is email marketing still worth it in 2026?,True,True,does email marketing work in 2026,,False,True,shortlist dropped the phrase; found in the full list,all verdicts
 What is the easiest email marketing platform?,True,True,easiest email marketing software,,True,True,,all verdicts
 What is the 80/20 rule in email marketing?,False,False,,,False,False,,tag only
 Why is everyone ditching Gmail?,False,False,,,False,False,,tag only
 What is a good replacement for Mailchimp?,True,True,email marketing software like mailchimp,,True,True,,all verdicts
-How much does Mailchimp cost per month?,True,False,,mailchimp-price,False,True,,all verdicts
+How much does Mailchimp cost per month?,True,True,mailchimp cost per month | how much is mailchimp a month,mailchimp-price,True,True,found after the brand searches (2026-11-02); Claude Fable agreed,all verdicts
 What is the 12 second rule for emails?,False,False,,,False,False,,tag only
 What are the 5 C's of email?,False,False,,,False,False,,tag only
 What is the 48-hour email rule?,False,False,,,False,False,,tag only
@@ -15,12 +15,12 @@ Is email marketing declining?,True,False,,,False,True,"kept as not found: closes
 What email is Gen Z using?,False,False,,,False,False,,tag only
 What is the best email platform in 2026?,True,True,best email marketing software 2026,,True,True,,all verdicts
 Are newsletters still relevant in 2026?,True,True,do newsletters still work,,True,False,whether the channel is worth it counts as buyer research,all verdicts
-Is there a better option than Mailchimp?,True,False,,,False,True,"kept as not found: closest phrase 'email marketing software like mailchimp' asks for similar tools, not better ones",all verdicts
+Is there a better option than Mailchimp?,True,False,,,True,True,"kept as not found: after the brand searches the judges matched ""mailchimp alternatives"", but Claude Fable objected that a list of alternatives does not say which one is better; the stricter call is kept",all verdicts
 Does Microsoft have a newsletter tool?,True,True,newsletter software microsoft,,True,True,,all verdicts
 Can ChatGPT make a newsletter?,True,False,,,False,False,"which tool to use counts as buyer research, even outside the category",all verdicts
 Which newsletters make the most money?,False,False,,,False,False,,tag only
 What is the best free newsletter platform?,True,True,best newsletter software free,free-newsletter,True,True,,all verdicts
-How much is Mailchimp every month?,True,False,,mailchimp-price,False,True,,all verdicts
+How much is Mailchimp every month?,True,True,how much is mailchimp per month | mailchimp price per month,mailchimp-price,True,True,found after the brand searches (2026-11-02); Claude Fable agreed,all verdicts
 What is the best software to use to create a newsletter?,True,True,best newsletter creation software,,True,True,,all verdicts
 Can I create a newsletter on Microsoft Word?,True,False,,,False,True,,all verdicts
 What are the best newsletter templates?,False,False,,,False,False,,tag only

@@ -31,7 +31,7 @@ from collections import defaultdict
 from itertools import combinations
 from pathlib import Path
 
-from cgm import claude
+from cgm import claude, stage
 from cgm.client import Client
 from cgm.files import read_rows
 from cgm.profiles import profile
@@ -49,7 +49,6 @@ LUMP_PASS = 36
 SPLIT_PASS = 0.85
 STAGE_SAMPLE = 40
 STAGE_PASS = 36
-STAGES = ["learning", "comparing", "choosing"]
 
 TAG_SCHEMA = {"type": "object", "properties": {"buyer": {"type": "array", "items": {"type": "integer"}}},
               "required": ["buyer"]}
@@ -171,23 +170,6 @@ naming the phrases that differ.
 
 Groups:
 {groups}"""
-
-STAGE_SCHEMA = {"type": "object", "properties": {"stages": {"type": "array", "items": {
-    "type": "object", "properties": {"id": {"type": "integer"}, "stage": {"type": "string", "enum": STAGES}},
-    "required": ["id", "stage"]}}}, "required": ["stages"]}
-
-STAGE_PROMPT = """Each numbered topic below is a group of search phrases. Mark the stage of the
-buyer who searches it:
-- learning: finding out about the problem or the activity, not yet weighing what to buy ("what is
-  piano notation", "how do piano lessons work"), including how to do something in a provider or
-  tool the buyer already uses ("how to book a lesson in the acme app");
-- comparing: weighing options or whether to buy at all ("best piano schools", "online vs in-person
-  piano lessons", "are piano lessons worth it");
-- choosing: deciding on a provider or ready to buy ("acme piano school prices", "acme
-  alternatives", "piano lessons near me", "how much do piano lessons cost").
-
-Topics:
-{topics}"""
 
 NOISE = re.compile(r"^(19|20)\d\d$|^reddit$|^quora$|^youtube$")
 
@@ -330,17 +312,18 @@ def audit(topics: list[tuple[str, list[str]]], trace: Path) -> int:
                 if len(p) >= 2 and p[0] != p[1] and all(1 <= n <= len(topics) for n in p[:2])})
 
 
-def lump_sample(topics: list[tuple[str, list[str]]]) -> list[int]:
-    """Up to LUMP_SAMPLE topic numbers, picked with a fixed seed from topics of two or more phrases
-    (a single phrase can't be lumped)."""
-    candidates = [n for n, (_, members) in enumerate(topics, 1) if len(members) > 1]
+def lump_sample(topics: list[tuple[str, list[str]]], marked: list[str]) -> list[int]:
+    """Up to LUMP_SAMPLE topic numbers, picked with a fixed seed from kept topics of two or more
+    phrases (a single phrase can't be lumped, and dropped topics don't reach the report)."""
+    candidates = [n for n, (_, members) in enumerate(topics, 1)
+                  if len(members) > 1 and stage.kept(marked[n - 1])]
     return sorted(random.Random(0).sample(candidates, min(LUMP_SAMPLE, len(candidates))))
 
 
-def lump_check(topics: list[tuple[str, list[str]]], trace: Path) -> dict:
+def lump_check(topics: list[tuple[str, list[str]]], marked: list[str], trace: Path) -> dict:
     """An outside model judges sampled topics blind: it sees the phrases, not the names or scores.
     A topic with no verdict counts as needing more than one page."""
-    picked = lump_sample(topics)
+    picked = lump_sample(topics, marked)
     groups = "\n".join(f"{i}. {'; '.join(topics[n - 1][1])}" for i, n in enumerate(picked, 1))
     answer = claude.ask(LUMP_PROMPT.format(groups=groups), LUMP_SCHEMA, LUMP_MODEL, trace,
                         "topics: lump check")
@@ -352,33 +335,26 @@ def lump_check(topics: list[tuple[str, list[str]]], trace: Path) -> dict:
             "not_one_page": failed}
 
 
-def stage_listing(topics: list[tuple[str, list[str]]], ids: list[int]) -> str:
-    """Topics shown by their phrases only, numbered 1.. in the order of `ids`."""
-    return "\n".join(f"{i}. {'; '.join(topics[n - 1][1][:MERGE_EXAMPLES])}" for i, n in enumerate(ids, 1))
+def phrases_of(topics: list[tuple[str, list[str]]], ids: list[int]) -> list[str]:
+    """Topics shown by their phrases only, in the order of `ids`."""
+    return ["; ".join(topics[n - 1][1][:MERGE_EXAMPLES]) for n in ids]
 
 
 def stages(topics: list[tuple[str, list[str]]], trace: Path) -> list[str]:
-    """Each topic's funnel stage; "unknown" when Claude gave none, and an unknown topic is kept."""
-    ids = list(range(1, len(topics) + 1))
-    answer = claude.ask(STAGE_PROMPT.format(topics=stage_listing(topics, ids)), STAGE_SCHEMA, MODEL,
-                        trace, "topics: stage")
-    got = {v["id"]: v["stage"] for v in answer["stages"] if 1 <= v["id"] <= len(topics)}
-    return [got.get(n, "unknown") for n in ids]
+    """Each topic's funnel stage; an unknown stage is kept."""
+    return stage.mark(phrases_of(topics, list(range(1, len(topics) + 1))), MODEL, trace, "topics: stage")
 
 
 def stage_check(topics: list[tuple[str, list[str]]], marked: list[str], trace: Path) -> dict:
     """An outside model marks STAGE_SAMPLE random topics blind; counts agreement on keep or drop
     (learning is dropped). A missing verdict counts as a disagreement."""
     picked = sorted(random.Random(0).sample(range(1, len(topics) + 1), min(STAGE_SAMPLE, len(topics))))
-    answer = claude.ask(STAGE_PROMPT.format(topics=stage_listing(topics, picked)), STAGE_SCHEMA,
-                        LUMP_MODEL, trace, "topics: stage check")
-    theirs = {v["id"]: v["stage"] for v in answer["stages"] if 1 <= v["id"] <= len(picked)}
-    differ = [{"topic": topics[n - 1][0], "marked": marked[n - 1], "judge": theirs.get(i, "no verdict")}
-              for i, n in enumerate(picked, 1)
-              if theirs.get(i) is None or (theirs[i] == "learning") != (marked[n - 1] == "learning")]
-    same_stage = sum(theirs.get(i) == marked[n - 1] for i, n in enumerate(picked, 1))
+    theirs = stage.mark(phrases_of(topics, picked), LUMP_MODEL, trace, "topics: stage check")
+    pairs = [(n, marked[n - 1], t) for n, t in zip(picked, theirs)]
+    differ = [{"topic": topics[n - 1][0], "marked": m, "judge": t if t != "unknown" else "no verdict"}
+              for n, m, t in pairs if t == "unknown" or stage.kept(t) != stage.kept(m)]
     return {"judge": LUMP_MODEL, "topics_checked": len(picked), "same_keep_or_drop": len(picked) - len(differ),
-            "same_stage": same_stage,
+            "same_stage": sum(m == t for _, m, t in pairs),
             "passes": len(picked) == STAGE_SAMPLE and len(picked) - len(differ) >= STAGE_PASS,
             "keep_or_drop_differs": differ}
 
@@ -407,12 +383,13 @@ def pair_test(topic_of: dict[str, int], same_groups: list[set[str]]) -> dict:
             **measure(topic_of), "random_baseline": measure(dict(zip(phrases, labels)))}
 
 
-def reviewed_groups(run_folder: Path) -> list[set[str]]:
-    """For each answer-key question the review marked found, the real phrases the first judge pass
-    matched to it."""
+def reviewed_groups(run_folder: Path, commercial: set[str]) -> list[set[str]]:
+    """For each commercial answer-key question the review marked found, the real phrases the first
+    judge pass matched to it."""
     if not (run_folder / "reviewed.csv").exists():
         return []
-    found = {r["question"] for r in read_rows(run_folder / "reviewed.csv") if r["found"] == "True"}
+    found = {r["question"] for r in read_rows(run_folder / "reviewed.csv")
+             if r["found"] == "True" and r["question"] in commercial}
     _, sources = load_collected(run_folder)
     groups = []
     for r in read_rows(run_folder / "score.csv"):
@@ -421,6 +398,14 @@ def reviewed_groups(run_folder: Path) -> list[set[str]]:
             if len(real) > 1:
                 groups.append(real)
     return groups
+
+
+def commercial_questions(client: Client) -> set[str]:
+    """Answer-key buyer questions marked comparing or choosing, from the score step's stage tags."""
+    path = client.folder / "answer-key" / "stage-tags.csv"
+    if not path.exists():
+        raise SystemExit(f"No {path}. Run `cgm score` first: it marks each answer-key question's stage.")
+    return {r["question"] for r in read_rows(path) if stage.kept(r["stage"])}
 
 
 def run(client: Client, run_folder: Path) -> None:
@@ -432,7 +417,8 @@ def run(client: Client, run_folder: Path) -> None:
     print(f"{len(real)} real phrases, {len(buyers)} buyer phrases, {len(variants)} after merging "
           f"rewordings", flush=True)
 
-    topics, missing, before_merge = group(list(variants), list(dict.fromkeys(client.seeds)), trace)
+    brands = [site.name.lower() for site in [client.primary] + client.competitors]
+    topics, missing, before_merge = group(list(variants), list(dict.fromkeys(client.seeds + brands)), trace)
     topics, split_off = split(topics, trace)
     topics, renamed = ensure_questions(topics, trace)
     topics = sorted(topics, key=lambda t: -sum(len(variants[p]) for p in t[1]))
@@ -460,16 +446,16 @@ def run(client: Client, run_folder: Path) -> None:
                "names_fixed": renamed,
                "names_not_questions": sum(not name.strip().endswith("?") for name, _ in topics),
                "possible_duplicate_topic_pairs": audit(topics, trace),
-               "topics_by_stage": {st: marked.count(st) for st in STAGES + ["unknown"]},
+               "topics_by_stage": {st: marked.count(st) for st in stage.STAGES + ["unknown"]},
                "phrases_by_stage": {st: sum(len(variants[p]) for (_, m), s in zip(topics, marked)
-                                            if s == st for p in m) for st in STAGES + ["unknown"]},
-               "kept_topics": sum(st != "learning" for st in marked)}
-    groups = reviewed_groups(run_folder)
+                                            if s == st for p in m) for st in stage.STAGES + ["unknown"]},
+               "kept_topics": sum(map(stage.kept, marked))}
+    groups = reviewed_groups(run_folder, commercial_questions(client))
     if groups:
         summary["pair_test"] = pair_test(topic_of, groups)
         per = summary["pair_test"]["share_together_per_question"]
         summary["split_check_passes"] = per is not None and per >= SPLIT_PASS
-    summary["lump_check"] = lump_check(topics, trace)
+    summary["lump_check"] = lump_check(topics, marked, trace)
     summary["stage_check"] = stage_check(topics, marked, trace)
     (run_folder / "topics-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
