@@ -100,47 +100,55 @@ published 74% stays the reviewed figure.
 
 ## Second result: milestone 2 on the public demo
 
-Milestone 2 groups the collected buyer phrases into topics, one topic per question a buyer wants
-answered. On the demo, Claude tagged 837 of the 1,473 collected phrases as buyer phrases, plain
-code merged rewordings down to 761, and Claude grouped them into 131 named topics, such as "What
-is the best newsletter software?" (46 phrases) or "How much does transactional email cost?" (21).
-The full list is in [topics.csv](demo/email-marketing/runs/2026-10-30-0946/topics.csv).
+Milestone 2 groups the collected buyer phrases into topics. A topic is what one good page would
+answer, so a page can be matched to it later. On the demo, Claude tagged 860 of the 1,473
+collected phrases as buyer phrases, plain code merged rewordings down to 778, and Claude grouped
+them into 186 named topics, such as "What is the best newsletter software?". The full list is in
+[topics.csv](demo/email-marketing/runs/2026-10-30-0946/topics.csv).
 
-| Measure | Result | Random grouping |
-|---|---|---|
-| Phrase pairs matched to the same answer-key question that share a topic | **91%** | 2% |
-| The same, averaged per question | **88%** | 2% |
-| Phrase pairs matched to different questions that are kept apart | 99.7% | 98.2% |
+The topics are a working list for the tool, not the result a person reads: the report will rank
+them into a short list of the gaps most worth a page. So the number of topics doesn't matter, and
+71 of them hold a single phrase. What matters is that each topic is one page's worth, checked two
+ways:
 
-**How to read it.** The test pairs come from the judges' matches on the 25 questions the milestone
-1 review marked found (890 same-question pairs). Random grouping into topics of the same sizes is
-the baseline: the first two rows are far above it, so the grouping is doing real work. The third
-row is not: random grouping keeps almost every pair apart too, so it can't show lumping. No person
-checked the topics.
+| Check | Pass mark | Run 1 | Run 2 (published) | Random grouping |
+|---|---|---|---|---|
+| Not split: same-question pairs that share a topic, per question | 85% | 86% | 90% | 1% |
+| Not lumped: random topics one page could answer, judged blind | 36 of 40 | **39** | **34** | |
 
-**Target.** Each topic should be one question, so a page can be matched to it. The topics are a
-working list, not the result a person reads: the report will rank them into a short list of the
-gaps most worth a page. The pass marks are at least 85% on the per-question row above (set after
-seeing this result), and at least 18 of 20 randomly picked topics judged single-question by an
-outside model. The first passes; the second check is not built yet.
+**How to read it.** Milestone 2 has not passed yet: it needs both checks to pass on two runs in a
+row, and the lump check passed on one run and missed by two topics on the other. The two runs used
+the same code and the same phrases; Claude's grouping varies from run to run.
 
-**What is still weak.** 33 topics hold a single phrase. "Which tools exist" and "which tool is
-best" are still separate topics. Claude's last check flags 12 topic pairs as possible duplicates.
-Buyer tagging varies a little between runs: two runs on the same phrases gave 820 and 837.
+**What the checks measure.**
+- *Not split* uses the 25 answer-key questions the milestone 1 review marked found, and the
+  phrases the judges matched to them (900 pairs). Random grouping into topics of the same sizes
+  scores 1%, so the grouping is doing real work.
+- *Not lumped:* 40 topics with two or more phrases are picked with a fixed seed, and Claude Fable,
+  a different model from the one that grouped them, judges each one from its phrases alone. It
+  never sees the names or the scores.
 
-**How it was checked.** Claude Fable reviewed the topics twice. The first review found merged
-topics that lumped unrelated questions, the same question split across several topics, names that
-were not questions, junk such as bare prices, and a pair test with no baseline. Each was fixed and
-the demo rerun; the second review judged the topics fit for matching to pages.
+**What is still weak.** The same lumps come back across runs. "Is email marketing cheap?", about
+the channel, lands with "cheapest email marketing service", about choosing a tool. "How to do
+email marketing on Shopify" lands with "best email automation for Shopify". Topics about one
+vendor mix setup and pricing. No person has checked the topics.
 
-**Cost.** 14 Claude calls, about 4.5 minutes, $0.55 at list price (covered by a Claude
-subscription). Every call is in [trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/trace.jsonl).
+**How it got here.** The first version asked for one question per topic, read strictly, and judged
+20 topics. It failed (14 of 20), and splitting topics further to satisfy it broke the split check
+too (12 and 15 of 20, with 83% and 80%). The rule changed to one page per topic, closer to what the
+next milestone needs, and the sample grew to 40 topics to cut the noise. That change came after
+seeing the results. Claude Fable also reviewed the topics twice along the way.
+
+**Cost.** 14 Claude calls, about 4 minutes, $0.67 at list price (covered by a Claude
+subscription), of which $0.24 is the lump check. Every call is in
+[trace.jsonl](demo/email-marketing/runs/2026-10-30-0946/trace.jsonl).
 
 ## Status
 
 Early. Milestone 1 sits on its target line on the public demo (above). Question collection (Google
 autocomplete, and Search Console for your own site) and its scorer are built, with Claude web search
-and predicted questions as optional extras, and grouping into topics works (above). Site reading and
+and predicted questions as optional extras. Grouping into topics is built and close to its target
+(above). Site reading and
 the report are not built yet. It is built in public, one step at a time. The choices made so far and
 the reasons for them are in [docs/decisions.md](docs/decisions.md); the parts still open, with their
 options, are in [docs/architecture.md](docs/architecture.md).

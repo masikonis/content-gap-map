@@ -4,17 +4,18 @@
    leaving out other languages and junk.
 2. Plain code merges rewordings: phrases with the same words in any order or form, ignoring years
    and site names such as "reddit".
-3. Claude groups the phrases into topics: one topic is one question a buyer wants answered, so
-   one answer would satisfy every phrase in it. A list up to ONE_PASS phrases is grouped in one
+3. Claude groups the phrases into topics: one topic is what one good page would answer, so one
+   page could fully answer every phrase in it. A list up to ONE_PASS phrases is grouped in one
    call; a longer one is split by seed. A merge pass, seeing every topic's phrases, then joins
-   topics that mean the same and folds topics about other vendors into the general question.
+   topics that mean the same.
 4. Every topic name must be a question; Claude renames the ones that aren't.
 
 Code checks every answer: a phrase assigned twice keeps its first topic, and a phrase left out
 becomes a topic of its own and is counted. With reviewed verdicts, the pair test checks that
 phrases matched to the same answer-key question share a topic, next to a random baseline. A name
 audit asks Claude which topic names mean the same thing, to count over-splitting. The lump check
-has an outside model judge LUMP_SAMPLE random topics blind, to count topics that mix questions.
+has an outside model judge LUMP_SAMPLE random topics blind, to count topics that need more than
+one page.
 """
 
 import csv
@@ -38,8 +39,8 @@ ONE_PASS = 1000
 GROUP_BATCH = 400
 MERGE_EXAMPLES = 15
 LUMP_MODEL = "fable"  # an outside judge: not the model that made the topics
-LUMP_SAMPLE = 20
-LUMP_PASS = 18
+LUMP_SAMPLE = 40
+LUMP_PASS = 36
 SPLIT_PASS = 0.85
 
 TAG_SCHEMA = {"type": "object", "properties": {"buyer": {"type": "array", "items": {"type": "integer"}}},
@@ -68,15 +69,19 @@ GROUP_SCHEMA = {
     "required": ["topics"],
 }
 
-GROUP_PROMPT = """Group these numbered search phrases into topics. A topic is one question a buyer
-wants answered: phrases belong together only if one answer would satisfy all of them. The same
-subject is not enough: "piano lessons cost" and "piano lessons for adults" are different topics,
-while "piano lessons cost", "how much are piano lessons" and "piano lesson prices" are one. Words
-like a year, "best" or "reddit" don't make a new topic on their own.
+GROUP_PROMPT = """Group these numbered search phrases into topics. A topic is what one good page on
+a site would answer: phrases belong together only if one page could fully answer all of them. The
+same subject is not enough: "piano lessons cost" and "piano lessons for adults" need different
+pages, while "piano lessons cost", "how much are piano lessons" and "piano lesson prices" are one.
+A variation the same page would cover in a section, such as a year, "free", "best", "reddit" or a
+device, doesn't make a new topic on its own.
 
-The businesses being compared are {brands}. A phrase about one of them is its own topic when it
-asks about that business itself. A phrase about any other vendor goes in the general topic it
-asks about: "does acme offer piano lessons for adults" belongs with "piano lessons for adults".
+Three kinds of phrase need different answers, so keep them apart even on the same subject:
+- asking about the activity itself: "is piano hard to learn", "are piano lessons worth it";
+- how to do it yourself: "how to learn piano at home";
+- choosing a provider: "easiest piano school for beginners", "cheapest piano lessons".
+A phrase that names one vendor asks about that vendor: "does acme offer piano lessons" is not the
+same topic as "piano lessons for adults".
 
 Put every phrase in exactly one topic; a phrase unlike any other is a topic of its own. Name each
 topic as a short plain question ending in "?", such as "How much do piano lessons cost?".
@@ -97,12 +102,10 @@ MERGE_SCHEMA = {
 
 MERGE_PROMPT = """Below are numbered topics, each a question buyers ask, with its phrases. They
 were grouped in separate batches, so some mean the same thing. List the groups of topics that
-should be merged because one answer would satisfy every phrase in them, and give each merged group
+should be merged because one page could fully answer every phrase in them, and give each merged group
 a new short question as its name, ending in "?". Leave out topics with no duplicate. Do not merge
-topics that only share a subject or a vendor.
-
-The businesses being compared are {brands}. A topic about any other single vendor (for example
-"Does acme offer piano lessons?") should be merged into the general topic it asks about.
+topics that only share a subject or a vendor, and do not merge a topic about one vendor into a
+general one.
 
 Topics:
 {topics}"""
@@ -121,20 +124,22 @@ AUDIT_SCHEMA = {"type": "object", "properties": {"pairs": {"type": "array", "ite
     "type": "array", "items": {"type": "integer"}}}}, "required": ["pairs"]}
 
 AUDIT_PROMPT = """Below are numbered topic names, each a question buyers ask. List every pair of
-numbers whose questions one answer would satisfy, so the two topics should have been one.
+numbers whose questions one page could fully answer, so the two topics should have been one.
 
 Topics:
 {topics}"""
 
 LUMP_SCHEMA = {"type": "object", "properties": {"topics": {"type": "array", "items": {
-    "type": "object", "properties": {"id": {"type": "integer"}, "one_question": {"type": "boolean"},
+    "type": "object", "properties": {"id": {"type": "integer"}, "one_page": {"type": "boolean"},
                                      "reason": {"type": "string"}},
-    "required": ["id", "one_question", "reason"]}}}, "required": ["topics"]}
+    "required": ["id", "one_page", "reason"]}}}, "required": ["topics"]}
 
 LUMP_PROMPT = """Each numbered group below holds search phrases that were put together as one
-topic. For each group, decide whether it is one question: one answer would satisfy every phrase in
-it. A group that mixes questions needing different answers (for example price and setup, or two
-different tools) is not one question. Give a short reason, naming the phrases that differ.
+topic. For each group, decide whether one good page could fully answer every phrase in it.
+Variations one page would cover in a section, such as a device or a free option, are fine. A group
+fails when it needs different pages: for example price and setup, whether the activity is worth
+doing next to which provider to choose, or questions about different vendors. Give a short reason,
+naming the phrases that differ.
 
 Groups:
 {groups}"""
@@ -200,16 +205,16 @@ def tag(client: Client, phrases: list[str], trace: Path) -> set[str]:
     return buyers
 
 
-def group_batch(phrases: list[str], brands: str, trace: Path, label: str) -> tuple[list, int]:
-    answer = claude.ask(GROUP_PROMPT.format(brands=brands, phrases=numbered(phrases)),
+def group_batch(phrases: list[str], trace: Path, label: str) -> tuple[list, int]:
+    answer = claude.ask(GROUP_PROMPT.format(phrases=numbered(phrases)),
                         GROUP_SCHEMA, MODEL, trace, label)
     return assign(answer["topics"], phrases)
 
 
-def group(phrases: list[str], seeds: list[str], brands: str, trace: Path) -> tuple[list, int, int]:
+def group(phrases: list[str], seeds: list[str], trace: Path) -> tuple[list, int, int]:
     """Topics, phrases left out by the grouping calls, and topics before the merge pass."""
     if len(phrases) <= ONE_PASS:
-        topics, missing = group_batch(phrases, brands, trace, "topics: group all")
+        topics, missing = group_batch(phrases, trace, "topics: group all")
     else:
         by_seed = defaultdict(list)
         for p in phrases:
@@ -217,14 +222,14 @@ def group(phrases: list[str], seeds: list[str], brands: str, trace: Path) -> tup
         topics, missing = [], 0
         for seed, members in by_seed.items():
             for i in range(0, len(members), GROUP_BATCH):
-                found, left_out = group_batch(members[i:i + GROUP_BATCH], brands, trace,
+                found, left_out = group_batch(members[i:i + GROUP_BATCH], trace,
                                               f"topics: group {seed} {i // GROUP_BATCH + 1}")
                 topics += found
                 missing += left_out
-    # The merge pass always runs: it rejoins split questions and folds stray vendors and the
-    # phrases a grouping call left out.
+    # The merge pass always runs: it rejoins split questions and the phrases a grouping call
+    # left out.
     listing = numbered([f"{name}: {'; '.join(members[:MERGE_EXAMPLES])}" for name, members in topics])
-    answer = claude.ask(MERGE_PROMPT.format(brands=brands, topics=listing), MERGE_SCHEMA, MODEL,
+    answer = claude.ask(MERGE_PROMPT.format(topics=listing), MERGE_SCHEMA, MODEL,
                         trace, "topics: merge")
     return apply_merges(topics, answer["merges"]), missing, len(topics)
 
@@ -241,7 +246,7 @@ def ensure_questions(topics: list[tuple[str, list[str]]], trace: Path) -> tuple[
 
 
 def audit(topics: list[tuple[str, list[str]]], trace: Path) -> int:
-    """How many topic pairs Claude says one answer would satisfy: a count of over-splitting."""
+    """How many topic pairs Claude says one page could answer: a count of over-splitting."""
     answer = claude.ask(AUDIT_PROMPT.format(topics=numbered([name for name, _ in topics])),
                         AUDIT_SCHEMA, MODEL, trace, "topics: name audit")
     return len({tuple(sorted(p[:2])) for p in answer["pairs"]
@@ -257,17 +262,17 @@ def lump_sample(topics: list[tuple[str, list[str]]]) -> list[int]:
 
 def lump_check(topics: list[tuple[str, list[str]]], trace: Path) -> dict:
     """An outside model judges sampled topics blind: it sees the phrases, not the names or scores.
-    A topic with no verdict counts as not one question."""
+    A topic with no verdict counts as needing more than one page."""
     picked = lump_sample(topics)
     groups = "\n".join(f"{i}. {'; '.join(topics[n - 1][1])}" for i, n in enumerate(picked, 1))
     answer = claude.ask(LUMP_PROMPT.format(groups=groups), LUMP_SCHEMA, LUMP_MODEL, trace,
                         "topics: lump check")
     verdicts = {v["id"]: v for v in answer["topics"] if 1 <= v["id"] <= len(picked)}
     failed = [{"topic": topics[n - 1][0], "reason": verdicts.get(i, {}).get("reason", "no verdict")}
-              for i, n in enumerate(picked, 1) if not verdicts.get(i, {}).get("one_question")]
-    return {"judge": LUMP_MODEL, "topics_checked": len(picked), "one_question": len(picked) - len(failed),
+              for i, n in enumerate(picked, 1) if not verdicts.get(i, {}).get("one_page")]
+    return {"judge": LUMP_MODEL, "topics_checked": len(picked), "one_page": len(picked) - len(failed),
             "passes": len(picked) == LUMP_SAMPLE and len(picked) - len(failed) >= LUMP_PASS,
-            "not_one_question": failed}
+            "not_one_page": failed}
 
 
 def pair_test(topic_of: dict[str, int], same_groups: list[set[str]]) -> dict:
@@ -319,8 +324,7 @@ def run(client: Client, run_folder: Path) -> None:
     print(f"{len(real)} real phrases, {len(buyers)} buyer phrases, {len(variants)} after merging "
           f"rewordings", flush=True)
 
-    brands = ", ".join([client.primary.name] + [c.name for c in client.competitors])
-    topics, missing, before_merge = group(list(variants), list(dict.fromkeys(client.seeds)), brands, trace)
+    topics, missing, before_merge = group(list(variants), list(dict.fromkeys(client.seeds)), trace)
     topics, renamed = ensure_questions(topics, trace)
     topics = sorted(topics, key=lambda t: -sum(len(variants[p]) for p in t[1]))
     print(f"{before_merge} topics grouped, {len(topics)} after the merge pass; {missing} phrases left "

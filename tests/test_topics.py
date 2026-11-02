@@ -41,17 +41,17 @@ def test_pair_test_scores_against_a_random_baseline():
 
 def test_lump_sample_skips_single_phrase_topics_and_is_repeatable():
     from cgm.topics import lump_sample
-    topics = [(f"t{n}?", ["a", "b"] if n % 2 else ["a"]) for n in range(1, 61)]
+    topics = [(f"t{n}?", ["a", "b"] if n % 2 else ["a"]) for n in range(1, 121)]
     picked = lump_sample(topics)
-    assert len(picked) == 20 and picked == lump_sample(topics)
+    assert len(picked) == 40 and picked == lump_sample(topics)
     assert all(n % 2 for n in picked)
 
 
 def test_lump_check_counts_a_missing_verdict_as_a_fail(monkeypatch, tmp_path):
     from cgm import topics as t
-    many = [(f"t{n}?", ["a", "b"]) for n in range(1, 21)]
-    answer = {"topics": [{"id": i, "one_question": i != 2, "reason": "r"} for i in range(1, 20)]}
+    many = [(f"t{n}?", ["a", "b"]) for n in range(1, 41)]
+    answer = {"topics": [{"id": i, "one_page": i not in (2, 3, 4), "reason": "r"} for i in range(1, 40)]}
     monkeypatch.setattr(t.claude, "ask", lambda *a, **k: answer)
     result = t.lump_check(many, tmp_path / "trace.jsonl")
-    assert result["one_question"] == 18 and result["passes"] is True
-    assert [f["reason"] for f in result["not_one_question"]] == ["r", "no verdict"]
+    assert result["one_page"] == 36 and result["passes"] is True
+    assert [f["reason"] for f in result["not_one_page"]] == ["r", "r", "r", "no verdict"]

@@ -441,44 +441,39 @@ reviewing in a browser is needed often.
   (Sonnet) tags each one as a buyer phrase or not under the site's profile rule. Phrases in another
   language, logins, downloads, phrases with a dollar amount and far-away places are left out as
   junk. Only buyer phrases are grouped.
+- **The topic rule:** a topic is what one good page on a site would answer, so one page could
+  fully answer every phrase in it. A variation that page would cover in a section (a year, "free",
+  "best", a device) stays in the topic. Three kinds of phrase need different pages even on one
+  subject: asking about the activity itself ("is email marketing hard"), how to do it yourself,
+  and choosing a provider. A phrase about one named vendor, compared or not, is its own topic.
 - **How:** plain code first merges rewordings: the same words in any order or form, ignoring years
-  and the words reddit, quora and youtube. Claude then groups the rest into topics under the same
-  rule as scoring: a topic is one question a buyer wants answered, so one answer would satisfy
-  every phrase in it. Up to 1,000 phrases go in one call, so a question is never split across
-  calls; a longer list is split by its nearest seed. Each topic is named as a question ending in
-  "?". The businesses compared get their own topics only when a phrase asks about that business;
-  other vendors go into the general question.
-- **Merge pass, always:** a second call sees every topic with its phrases, joins topics that ask
-  the same question under a new name, and folds topics about other single vendors into the general
-  question. It also catches the phrases the first call left out, which code keeps as their own
-  topics and counts.
+  and the words reddit, quora and youtube. Claude then groups the rest under the topic rule. Up to
+  1,000 phrases go in one call, so a question is never split across calls; a longer list is split
+  by its nearest seed. Each topic is named as a question ending in "?".
+- **Merge pass, always:** a second call sees every topic with its phrases and joins topics one
+  page could answer under a new name, without folding a vendor topic into a general one. It also
+  catches the phrases the first call left out, which code keeps as their own topics and counts.
 - **Checks in code:** a phrase assigned twice keeps its first topic; each topic joins at most one
   merge; a name that is not a question is sent back to be renamed; a last call lists topic pairs
   that may still be duplicates, reported and not acted on.
-- **The test:** in a reviewed run, phrases the judges matched to the same answer-key question
-  should share a topic. The score is the share of those pairs kept together, overall and averaged
-  per question so big questions don't carry it, next to the same shares for a random grouping of
-  the same sizes. Pairs matched to different questions are reported too, but random grouping
-  already keeps almost all of them apart, so that share says little.
 
-**Alternatives:** grouping everything collected; Claude alone without the code merge; grouping one
-seed at a time, which split the same question across seeds and needed a merge that lumped
-unrelated topics together; a merge pass only for long lists; an embedding model with clustering
-code, which would need an AI model running on the local machine.
+**Alternatives:**
+- One question per topic, read strictly (one answer satisfies every phrase). An outside judge then
+  failed topics one page answers easily, such as newsletter software for Windows or Mac, and
+  splitting further to satisfy it broke the split check: both checks failed.
+- Folding other vendors into the general question: fewer topics, but a general page rarely answers
+  a question about one named vendor, and the lump check failed those topics.
+- Grouping everything collected; Claude alone without the code merge; grouping one seed at a time,
+  which split the same question across seeds and needed a merge that lumped unrelated topics; a
+  merge pass only for long lists; an embedding model with clustering code, which would need an AI
+  model running on the local machine.
 
-**Why:** the report should only show topics buyers care about, and shorter, cleaner lists group
-better. Merging exact rewordings is a job for code; deciding what means the same is a job for
-Claude. Using the scoring rule as the topic rule keeps milestones 1 and 2 consistent, and the pair
-test reuses data a review already checked, so it needs no new labelling. The random baseline shows
-whether a score means anything. Claude Fable reviewed the topics twice; the one-pass grouping, the
-always-on merge, question names, the vendor rule and the baseline came from those reviews.
-
-Result on the public demo: 837 buyer phrases, 761 after merging rewordings, 131 topics (136
-before the merge pass), 33 of them a single phrase. 91% of same-question pairs share a topic (88%
-per question), against 2% for random grouping. 12 topic pairs are flagged as possible duplicates.
-Known weak spots: "which tools exist" and "which tool is best" are still separate topics, buyer
-tagging varies slightly between runs (820 and 837 buyer phrases on the same input), and no person
-has checked the topics. Earlier private runs used older code and have not been redone.
+**Why:** milestone 3 matches pages to topics, so the topic should be the size of a page. Merging
+exact rewordings is a job for code; deciding what one page answers is a job for Claude. Vendor
+topics and one-phrase topics cost nothing, since the report ranks them low. Claude Fable reviewed
+the topics twice; the one-pass grouping, the always-on merge, question names and the random
+baseline came from those reviews. What it costs: topics are less precise than one question, so a
+page matched to a topic may cover some of its phrases better than others.
 
 ## 2026-10-30: Topics are a full working list; the report ranks them later
 
@@ -492,17 +487,32 @@ in the run folder as evidence.
 questions so that one page can't be matched to a topic; the full list plus broad theme headings in
 the report, for display only, left out until a real report shows it is needed.
 
-**Why:** a page answers one question, so matching needs one question per topic. Whether a topic is
-worth a page depends on what competitors answer, which only milestones 3 and 4 show, so ranking
-belongs at the end. A long tail of one-phrase topics costs the reader nothing when it ranks low.
-What it costs: nobody sees a readable result until milestone 5.
+**Why:** matching needs topics the size of one page. Whether a topic is worth a page depends on
+what competitors answer, which only milestones 3 and 4 show, so ranking belongs at the end. A long
+tail of one-phrase topics costs the reader nothing when it ranks low. What it costs: nobody sees a
+readable result until milestone 5.
 
-**Target for milestone 2:** each topic is one question, checked two ways.
-- **Not split:** at least 85% of same-question phrase pairs share a topic, with each answer-key
-  question counted equally.
-- **Not lumped:** at least 18 of 20 topics, picked at random with a fixed seed, hold one question,
-  judged blind by an outside model (Claude Fable or OpenAI Codex) that does not see the scores.
+## 2026-10-30: The milestone 2 target, and how it is checked
 
-Topic count and one-phrase topics are not part of the target. The target was set after the first
-result (88% on the split check), so it shows the bar going forward, not a prediction made in
-advance. The lump check is not built yet.
+**Chose:** each topic is what one page would answer, checked two ways on every run.
+- **Not split:** in a reviewed run, phrases the judges matched to the same answer-key question
+  should share a topic. At least 85% of those pairs must, with each question counted equally, and
+  the same share for a random grouping of the same topic sizes is reported next to it.
+- **Not lumped:** at least 36 of 40 topics, picked with a fixed seed from topics of two or more
+  phrases (a single phrase can't be lumped), must be ones one page could fully answer. Claude
+  Fable judges them blind: it sees the phrases, not the names or scores. A missing verdict is a
+  fail.
+- Milestone 2 passes when both checks pass on two runs in a row.
+
+**Alternatives:** the split check alone, which a tool that dumps everything into a few huge topics
+would pass; judging 20 topics, too noisy (the same code scored 12 and 15 of 20 on two runs);
+sampling every topic, where one-phrase topics pass automatically; a person checking topics, which
+nobody has time for at each run; the share of different-question pairs kept apart, which random
+grouping already scores 98% on, so it says little.
+
+**Why:** lumping is the failure that would hurt the report most, since a lumped topic hides a
+real gap, and the split check can't see it. An outside model that never sees the scores is the
+cheapest honest judge. What it costs: about $0.24 per run, and the judge is still an AI.
+
+The target was set after the first results and changed once: the first version asked for one
+question per topic, judged 20 topics and needed 18 of them.
