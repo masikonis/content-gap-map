@@ -142,7 +142,8 @@ has checked the topics.
   grew to 40 topics to cut the noise. The lump check then passed once (39) and missed once (34),
   with the same lumps recurring.
 - A split pass now moves out phrases that a page answering the rest of a topic would not answer.
-  The lump check passed on both runs after it.
+  The lump check passed on both runs after it. Running the merge pass again after the split fixed
+  splitting (89% and 87%) but put the lumps back (29 and 34 of 40), so it was dropped.
 - The rule and the sample size changed after seeing the results. Claude Fable also reviewed the
   topics twice along the way.
 

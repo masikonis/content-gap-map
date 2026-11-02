@@ -464,6 +464,8 @@ reviewing in a browser is needed often.
 - One question per topic, read strictly (one answer satisfies every phrase). An outside judge then
   failed topics one page answers easily, such as newsletter software for Windows or Mac, and
   splitting further to satisfy it broke the split check: both checks failed.
+- Running the merge pass again after the split, to rejoin near-duplicate topics the split makes.
+  It fixed splitting (89% and 87%) but put the lumps back (29 and 34 of 40), so it was dropped.
 - Folding other vendors into the general question: fewer topics, but a general page rarely answers
   a question about one named vendor, and the lump check failed those topics.
 - Grouping everything collected; Claude alone without the code merge; grouping one seed at a time,
