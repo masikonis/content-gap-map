@@ -22,6 +22,8 @@
 
 - `docs/decisions.md`: every current decision and why. Read it before changing behaviour.
 - `docs/architecture.md`: the parts not decided yet, with their options.
+- `docs/results/`: one page per milestone with the published demo result, linked from the README.
+  When a demo rerun changes a number, update its page and the README progress table together.
 - `src/cgm/cli.py`: the `cgm` command and its steps.
 - `src/cgm/client.py`: loads a client file (template: `examples/client.example.toml`) and refuses
   an unknown site type.

@@ -6,14 +6,16 @@ decision changes, its entry is rewritten, so this page always shows the current 
 ## 2026-10-23: "Answered" has three levels
 
 **Chose:** when the tool reads a site's full passages, each question gets one of three verdicts
-per site: answered, partly answered, or not answered, with the URL and passage as evidence. At
-lighter reading depths the verdict is topic-level (see the next entry).
+per site: answered (in detail, with proof of expertise), partly answered (in general terms, or
+only part of the question), or not answered, with the URL and passage as evidence. At lighter
+reading depths the verdict is topic-level (see the next entry).
 
 **Alternatives:** yes or no; a score from 0 to 100.
 
 **Why:** "partly" is the most useful case, because it means improving an existing page rather
 than writing a new one. Yes or no hides it. A 0 to 100 score looks precise, but a person can't
-label it consistently, so we couldn't test it.
+label it consistently, so we couldn't test it. What counts as answered follows the proof rule
+(see "Only commercial topics count, and an answer needs proof").
 
 ## 2026-10-28: Sites are read in rungs, starting with the sitemap
 

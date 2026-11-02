@@ -6,14 +6,16 @@ page, and its choice is in [decisions.md](decisions.md).
 
 Decided so far: where questions come from, the backend language and its tooling, how the pipeline
 calls Claude, which model does each step, traces, how runs are stored, how evals work, the
-command-line shape, how questions are grouped into topics, and two constraints behind every option
+command-line shape, how questions are grouped into topics, which funnel stages count, what counts
+as an answer, and two constraints behind every option
 below (free software and data only; AI through Claude Code). Crawling is always polite: robots.txt,
 rate limits and an honest crawler name.
 
 Sites are read in rungs (see [decisions.md](decisions.md)), so not every part is needed at once. The
 first version, at rung 1 (sitemap), still needs a viewer (8). The crawler and JavaScript pages (1,
 2) join at rung 2. Text extraction, splitting and passage search (3 to 5) join at rung 3, with the
-embedding model and vector storage (6, 7).
+embedding model and vector storage (6, 7). Rung 1 can only show missing pages: judging whether a
+page answers with proof needs its text, so that verdict waits for rung 3.
 
 Facts below came from web research on 2026-10-23. Some are not verified yet: a few model
 licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a subscription.
