@@ -485,6 +485,10 @@ reviewing in a browser is needed often.
 - One question per topic, read strictly (one answer satisfies every phrase). An outside judge then
   failed topics one page answers easily, such as newsletter software for Windows or Mac, and
   splitting further to satisfy it broke the split check: both checks failed.
+- A majority vote of three groupings, to steady Claude's run-to-run variation: three times the
+  grouping calls and about 40 lines of code, kept in reserve since one call was enough.
+- Starting each run from the last run's topics: the most stable, and useful for tracking a client
+  month to month, but a run would then test placing phrases rather than grouping them.
 - Running the merge pass again after the split, to rejoin near-duplicate topics the split makes.
   It fixed splitting (89% and 87%) but put the lumps back (29 and 34 of 40), so it was dropped.
 - Folding other vendors into the general question: fewer topics, but a general page rarely answers
