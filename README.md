@@ -74,6 +74,7 @@ uv run cgm websearch <name>      # optional: questions people wrote online, chec
 uv run cgm predicted <name>      # optional: predicted AI-assistant questions, scored apart
 uv run cgm score <name>          # score the run against an answer key in private/<name>/answer-key/
 uv run cgm topics <name>         # group the run's buyer phrases into commercial topics
+uv run cgm sitemaps <name>       # read every compared site's sitemap into the run
 ```
 
 ## License

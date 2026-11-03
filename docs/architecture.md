@@ -7,7 +7,7 @@ page, and its choice is in [decisions.md](decisions.md).
 Decided so far: where questions come from, the backend language and its tooling, how the pipeline
 calls Claude, which model does each step, traces, how runs are stored, how evals work, the
 command-line shape, how questions are grouped into topics, which funnel stages count, what counts
-as an answer, and two constraints behind every option
+as an answer, how milestone 3 is tested, how sitemaps are read, and two constraints behind every option
 below (free software and data only; AI through Claude Code). Crawling is always polite: robots.txt,
 rate limits and an honest crawler name.
 
@@ -22,9 +22,12 @@ licences, speeds on a typical laptop, and whether the Claude Agent SDK can use a
 
 ## 1. Crawler
 
+Sitemap reading is decided (our own reader, see decisions.md); fetching the pages themselves, from
+rung 2, is still open.
+
 | Option | Pros | Cons |
 |---|---|---|
-| **A. Our own small crawler** (httpx, plus Protego for robots.txt) | A few hundred lines, all readable. Exactly the polite rules we want. | We write sitemap reading, caching and retries ourselves. |
+| **A. Our own small crawler** (httpx, plus Protego for robots.txt) | A few hundred lines, all readable. Exactly the polite rules we want. | We write caching and retries ourselves. |
 | **B. Scrapy** | Mature. Robots.txt, rate limiting and caching built in. | A whole framework for 3 or 4 sites. |
 | **C. Crawlee** (Python or JS) | Switches easily between plain fetching and a real browser. | Built for getting around blocks, which goes against the polite rule. |
 | **D. crawl4ai** | Popular, outputs clean Markdown, handles JavaScript pages. | Big, changes fast, carries AI features we won't use. |

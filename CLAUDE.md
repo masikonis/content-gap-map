@@ -30,8 +30,8 @@
 - `src/cgm/profiles.py`: site-type profiles (services, b2b-software, generic): autocomplete
   expansion words, the buyer-question rule, and predicted-question angles.
 - `src/cgm/fetch.py`: polite, safe web requests for every step: the crawler name, the pause, and
-  `PageFetcher` for untrusted URLs (public addresses only, robots.txt, redirects re-checked,
-  2 MB cap).
+  `PageFetcher` for untrusted URLs (public addresses only, robots.txt, redirects re-checked, a
+  size cap: 2 MB for pages, 50 MB for sitemaps).
 - `src/cgm/files.py`: reads a run's CSV files as UTF-8.
 - `src/cgm/autocomplete.py`: Google autocomplete collector for the seeds and for each compared
   business's name (brand searches). Plain code, raw replies kept.
@@ -48,6 +48,9 @@
   topics are kept in topics.csv but dropped from every later step; the tool covers only comparing
   and choosing. Runs the pair test when the run has reviewed verdicts, and has Claude Fable judge
   40 random topics blind for lumping and for stage (the lump and stage checks).
+- `src/cgm/sitemaps.py`: milestone 3, rung 1. Reads every compared site's sitemaps (robots.txt,
+  sitemap indexes, gzip) through `PageFetcher`, parses them with defusedxml, and names every
+  problem in the summary. Plain code.
 - `src/cgm/stage.py`: the funnel-stage rule (learning, comparing, choosing), shared by scoring and
   grouping. Only learning is dropped.
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
@@ -71,6 +74,7 @@ uv run cgm websearch <client>          # optional: adds to the latest run (or --
 uv run cgm predicted <client>          # optional: predicted AI-style questions, never demand
 uv run cgm score <client>              # scores the latest run against the answer key
 uv run cgm topics <client>             # groups the latest run's buyer phrases into topics
+uv run cgm sitemaps <client>           # reads every compared site's sitemap into the latest run
 ```
 
 ## Data layout
@@ -93,6 +97,7 @@ private/blocklist.txt          terms the local pre-commit hook refuses to commit
     trace.jsonl                        every Claude call
     reviewed.csv, reviewed-summary.json   the reviewed verdicts, once a review is done
     topics.csv, topics-summary.json    buyer phrases grouped into topics with a funnel stage, and the checks
+    sitemaps.csv, sitemaps-summary.json   every page address in each site's sitemaps, and problems
     first-score/                       a score kept as published, when a later one replaces it
 ```
 

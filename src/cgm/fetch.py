@@ -45,7 +45,8 @@ class PageFetcher:
     def __init__(self, http: httpx.Client):
         self.http, self.robots = http, {}
 
-    def read(self, url: str) -> tuple[int, str, str | None]:
+    def read(self, url: str, limit: int = MAX_BYTES) -> tuple[int, bytes, str, str | None]:
+        """Status, body (at most `limit` bytes), its declared encoding, and any redirect target."""
         parts = urlsplit(url)
         address = public_address(parts.hostname or "")
         if address is None:
@@ -59,10 +60,10 @@ class PageFetcher:
             body = b""
             for chunk in response.iter_bytes():
                 body += chunk
-                if len(body) >= MAX_BYTES:
+                if len(body) >= limit:
                     break
-            text = body[:MAX_BYTES].decode(response.encoding or "utf-8", errors="replace")
-            return response.status_code, text, response.headers.get("location")
+            return (response.status_code, body[:limit], response.encoding or "utf-8",
+                    response.headers.get("location"))
 
     def allowed(self, url: str) -> bool:
         parts = urlsplit(url)
@@ -70,8 +71,8 @@ class PageFetcher:
         if host not in self.robots:
             rules = RobotFileParser()
             try:
-                status, text, _ = self.read(f"{host}/robots.txt")
-                rules.parse(text.splitlines() if status == 200 else [])
+                status, body, encoding, _ = self.read(f"{host}/robots.txt")
+                rules.parse(body.decode(encoding, errors="replace").splitlines() if status == 200 else [])
             except (httpx.HTTPError, NotPublic):
                 rules.parse([])
             self.robots[host] = rules
@@ -79,6 +80,13 @@ class PageFetcher:
 
     def fetch(self, url: str) -> tuple[int | None, str]:
         """Follows redirects by hand, re-checking each hop. Returns (status, text) or (None, reason)."""
+        status, body = self.fetch_bytes(url)
+        if status is None:
+            return None, body
+        return status, body[0].decode(body[1], errors="replace")
+
+    def fetch_bytes(self, url: str, limit: int = MAX_BYTES):
+        """Like fetch, but returns (status, (body, encoding)) so binary files such as gzip survive."""
         for _ in range(MAX_REDIRECTS + 1):
             parts = urlsplit(url)
             if parts.scheme not in ("http", "https") or not parts.hostname:
@@ -86,11 +94,11 @@ class PageFetcher:
             try:
                 if not self.allowed(url):
                     return None, "robots.txt forbids crawlers"
-                status, text, location = self.read(url)
+                status, body, encoding, location = self.read(url, limit)
             except NotPublic:
                 return None, "not a public address"
             if status in (301, 302, 303, 307, 308) and location:
                 url = urljoin(url, location)
                 continue
-            return status, text
+            return status, (body, encoding)
         return None, "too many redirects"

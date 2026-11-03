@@ -595,3 +595,35 @@ directly. This is an opinionated choice, and the README says so up front.
 Expertise backed by proof can't be faked, so it is what makes a page worth more than a generic
 one. What it costs: judging proof needs each page's text, not just its sitemap or headings, and
 the funnel stage is a Claude judgment that needs its own check.
+
+## 2026-11-03: Milestone 3 is checked against Google's own pick of each site's page
+
+**Chose:** milestone 3 ("the right content") reads each site's sitemap and keeps the pages that
+could answer a commercial buyer topic. It is tested against an answer key built outside the tool:
+each of milestone 1's 20 commercial "People also ask" questions is searched on each compared site
+(`site:mailchimp.com How much does Mailchimp cost per month?`) in a real Chrome session, and the
+first result is the page that matters. **The target is 90% of those pages kept,** with the
+number of pages kept per site reported next to it. The key is committed before the tool runs.
+
+**Alternatives:** checking only that every sitemap address was read and dropped by clear rules,
+which proves the code reads files but not that it keeps the right pages; a person labelling a
+sample of kept and dropped addresses, the truest test but 20 minutes of Nerijus's time per rerun;
+building the key from milestone 2's topics, which would make the key depend on the tool's own
+grouping.
+
+**Why:** the costly mistake at this step is dropping a page that answers a buyer, since it turns
+into a false gap later; keeping too many only costs time. Google's ranking doesn't depend on the
+sitemap reader, and milestone 1's questions are already reviewed and public. What it costs:
+Google's first result isn't always the best page, and the key takes a short Chrome session.
+
+## 2026-11-03: Sitemaps are read by our own small reader
+
+**Chose:** a sitemap reader built on the existing polite fetch code: robots.txt for the sitemap
+locations, sitemap index files followed to their children, gzip handled, every request with the
+honest crawler name and the pause.
+
+**Alternatives:** a sitemap library such as ultimate-sitemap-parser, which handles odd formats
+but brings its own fetching, outside the polite rules.
+
+**Why:** the reader is small, and every request staying in `fetch.py` keeps the crawling rules in
+one place.
