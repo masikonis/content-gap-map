@@ -65,3 +65,13 @@ def test_only_web_addresses_and_dates_are_kept():
     tricky = b"""<urlset><url><loc>=HYPERLINK("x")</loc></url>
       <url><loc>https://piano.example/a</loc><lastmod>=1+1</lastmod></url></urlset>"""
     assert parse(tricky) == ("urls", [("https://piano.example/a", "")])
+
+
+def test_an_index_cannot_queue_more_than_the_sitemap_limit(monkeypatch):
+    from cgm import sitemaps
+    monkeypatch.setattr(sitemaps, "MAX_SITEMAPS", 3)
+    many = (b"<sitemapindex>" + b"".join(b"<sitemap><loc>https://piano.example/s%d.xml</loc></sitemap>" % n
+                                         for n in range(10)) + b"</sitemapindex>")
+    pages = FakePages({"https://piano.example/index.xml": many})
+    _, summary = read_site(pages, Site("Piano", "https://piano.example"))
+    assert len(pages.asked) == 3 and summary["sitemaps_read"] == 3

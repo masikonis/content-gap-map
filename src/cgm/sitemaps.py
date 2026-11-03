@@ -51,7 +51,7 @@ def locations(pages: PageFetcher, site: Site) -> list[str]:
     parts = urlsplit(site.url)
     home = f"{parts.scheme}://{parts.netloc}"
     pages.allowed(home + "/")
-    return pages.robots[home].site_maps() or [home + "/sitemap.xml"]
+    return list(dict.fromkeys(pages.robots[home].site_maps() or [home + "/sitemap.xml"]))[:MAX_SITEMAPS]
 
 
 def read_site(pages: PageFetcher, site: Site) -> tuple[list[dict], dict]:
@@ -78,9 +78,12 @@ def read_site(pages: PageFetcher, site: Site) -> tuple[list[dict], dict]:
             problems.append(f"{url}: not a readable sitemap ({type(error).__name__})")
             continue
         if kind == "index":
-            queue.extend(loc for loc, _ in entries[:MAX_SITEMAPS - len(seen) - len(queue)])
+            room = max(0, MAX_SITEMAPS - len(seen) - len(queue))
+            new = [loc for loc in dict.fromkeys(loc for loc, _ in entries)
+                   if loc not in seen and loc not in queue]
+            queue.extend(new[:room])
         else:
-            for loc, lastmod in entries[:MAX_PAGES - len(rows)]:
+            for loc, lastmod in entries[:max(0, MAX_PAGES - len(rows))]:
                 rows.setdefault(loc, {"site": site.name, "url": loc, "lastmod": lastmod, "sitemap": url})
     if queue:
         problems.append(f"stopped at {len(seen)} sitemaps and {len(rows)} pages; {len(queue)} sitemaps not read")
