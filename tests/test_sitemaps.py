@@ -59,3 +59,9 @@ def test_a_billion_laughs_sitemap_is_refused_not_expanded():
     pages = FakePages({"https://piano.example/index.xml": bomb})
     rows, summary = read_site(pages, Site("Piano", "https://piano.example"))
     assert rows == [] and "not a readable sitemap" in summary["problems"][0]
+
+
+def test_only_web_addresses_and_dates_are_kept():
+    tricky = b"""<urlset><url><loc>=HYPERLINK("x")</loc></url>
+      <url><loc>https://piano.example/a</loc><lastmod>=1+1</lastmod></url></urlset>"""
+    assert parse(tricky) == ("urls", [("https://piano.example/a", "")])

@@ -10,6 +10,8 @@ import csv
 import gzip
 import io
 import json
+import re
+from collections import deque
 from pathlib import Path
 from xml.etree.ElementTree import ParseError
 from urllib.parse import urlsplit
@@ -21,8 +23,11 @@ from defusedxml.ElementTree import fromstring
 from cgm.client import Client, Site
 from cgm.fetch import PageFetcher, http_client
 
-SITEMAP_BYTES = 50_000_000  # the sitemap protocol's own limit for one file
+SITEMAP_BYTES = 50_000_000  # the sitemap protocol's own limits for one file
+SITEMAP_ENTRIES = 50_000
 MAX_SITEMAPS = 500
+MAX_PAGES = 200_000
+DATE = re.compile(r"^\d{4}-\d{2}-\d{2}[0-9T:.+\-Z]*$")
 
 
 def parse(body: bytes) -> tuple[str, list[tuple[str, str]]]:
@@ -33,10 +38,12 @@ def parse(body: bytes) -> tuple[str, list[tuple[str, str]]]:
     root = fromstring(body)  # defusedxml: these files come from the web
     kind = "index" if root.tag.endswith("sitemapindex") else "urls"
     entries = []
-    for entry in root:
+    for entry in list(root)[:SITEMAP_ENTRIES]:
         fields = {child.tag.rsplit("}", 1)[-1]: (child.text or "").strip() for child in entry}
-        if fields.get("loc"):
-            entries.append((fields["loc"], fields.get("lastmod", "")))
+        # Only web addresses and dates are kept, so no cell can start with a spreadsheet formula.
+        if urlsplit(fields.get("loc", "")).scheme in ("http", "https"):
+            lastmod = fields.get("lastmod", "")
+            entries.append((fields["loc"], lastmod if DATE.match(lastmod) else ""))
     return kind, entries
 
 
@@ -49,9 +56,9 @@ def locations(pages: PageFetcher, site: Site) -> list[str]:
 
 def read_site(pages: PageFetcher, site: Site) -> tuple[list[dict], dict]:
     """Every page address in the site's sitemaps, and a summary that names each problem."""
-    queue, seen, rows, problems = locations(pages, site), set(), {}, []
-    while queue and len(seen) < MAX_SITEMAPS:
-        url = queue.pop(0)
+    queue, seen, rows, problems = deque(locations(pages, site)), set(), {}, []
+    while queue and len(seen) < MAX_SITEMAPS and len(rows) < MAX_PAGES:
+        url = queue.popleft()
         if url in seen:
             continue
         seen.add(url)
@@ -71,12 +78,12 @@ def read_site(pages: PageFetcher, site: Site) -> tuple[list[dict], dict]:
             problems.append(f"{url}: not a readable sitemap ({type(error).__name__})")
             continue
         if kind == "index":
-            queue += [loc for loc, _ in entries]
+            queue.extend(loc for loc, _ in entries[:MAX_SITEMAPS - len(seen) - len(queue)])
         else:
-            for loc, lastmod in entries:
+            for loc, lastmod in entries[:MAX_PAGES - len(rows)]:
                 rows.setdefault(loc, {"site": site.name, "url": loc, "lastmod": lastmod, "sitemap": url})
     if queue:
-        problems.append(f"stopped after {MAX_SITEMAPS} sitemaps; {len(queue)} not read")
+        problems.append(f"stopped at {len(seen)} sitemaps and {len(rows)} pages; {len(queue)} sitemaps not read")
     return list(rows.values()), {"sitemaps_read": len(seen), "pages": len(rows), "problems": problems}
 
 
