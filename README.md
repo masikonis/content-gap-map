@@ -45,7 +45,7 @@ email marketing software: Mailchimp, with Brevo and MailerLite as competitors.
 | Milestone | What it proves | Status on the demo |
 |---|---|---|
 | 1. Real questions | It collects the questions real buyers ask, not ones a machine made up | Above target: 85% of the commercial questions in Google's "People also ask" found, against 75% ([details](docs/results/milestone-1.md)) |
-| 2. Clear topics | It groups them into page-sized topics and keeps only commercial ones | Not passed yet: all three checks passed on two of the last four runs, but never two in a row ([details](docs/results/milestone-2.md)) |
+| 2. Clear topics | It groups them into page-sized topics and keeps only commercial ones | Passed: all three checks (not split, not lumped, right stage) passed two runs in a row ([details](docs/results/milestone-2.md)) |
 | 3. The right content | It reads your site and competitors' sites, starting with the sitemap | Not started |
 | 4. Honest verdicts | It gives each site the verdict its depth can prove, with the proof | Not started |
 | 5. Gaps worth acting on | A short, ranked list of pages worth writing | Not started |
@@ -53,7 +53,7 @@ email marketing software: Mailchimp, with Brevo and MailerLite as competitors.
 Milestone 1 is scored against a fixed answer key the tool never sees while it runs, and milestone
 2 reuses it. AI judgments are checked by a different model, mostly blind, and each results page
 says what no person has reviewed. Weak and failed results are published too. One demo run of
-milestones 1 and 2 costs about $5.30 at list price, covered by a Claude subscription, and every AI
+milestones 1 and 2 costs about $5.60 at list price, covered by a Claude subscription, and every AI
 call is logged.
 
 The choices made so far and why are in [docs/decisions.md](docs/decisions.md); the parts still

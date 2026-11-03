@@ -4,34 +4,35 @@
 
 Milestone 2 groups the collected buyer phrases into topics and keeps the commercial ones. A topic
 is what one good page would answer, so a page can be matched to it later. On the demo's
-published run, Claude tagged 2,136 of the 3,355 real collected phrases as buyer phrases, plain
-code merged rewordings down to 1,981, and Claude grouped them into 574 named topics. Claude then
-marked each topic's funnel stage: 141 comparing and 245 choosing are kept (386 topics, 1,387
-phrases), and 188 learning topics (749 phrases) are dropped, such as "What is a transactional
+published run, Claude tagged 2,048 of the 3,355 real collected phrases as buyer phrases, plain
+code merged rewordings down to 1,894, and Claude grouped them into 442 named topics. Claude then
+marked each topic's funnel stage: 118 comparing and 170 choosing are kept (288 topics, 1,337
+phrases), and 154 learning topics (711 phrases) are dropped, such as "What is a transactional
 email?". The full
 list, with each topic's stage, is in
 [topics.csv](../../demo/email-marketing/runs/2026-10-30-0946/topics.csv).
 
 The topics are a working list for the tool, not the result a person reads: the report will rank
 them into a short list of the gaps most worth a page. So the number of topics doesn't matter, and
-246 of them hold a single phrase. What matters is that each kept topic is one page's worth and
+158 of them hold a single phrase. What matters is that each kept topic is one page's worth and
 marked with the right stage, checked three ways on every run:
 
-| Check | Pass mark | Run 1 | Run 2 | Run 3 | Run 4 (published) | Random grouping |
-|---|---|---|---|---|---|---|
-| Not split: commercial same-question pairs that share a topic, per question | 85% | 88% | 92% | 86% | **84%** | 1% |
-| Not lumped: random kept topics one page could answer, judged blind | 36 of 40 | 39 | **35** | 36 | 38 | |
-| Right stage: random topics where a blind judge agrees on keep or drop | 36 of 40 | 36 | **35** | 38 | 38 | |
+| Check | Pass mark | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 (published) | Random grouping |
+|---|---|---|---|---|---|---|---|---|
+| Not split: commercial same-question pairs that share a topic, per question | 85% | 88% | 92% | 86% | **84%** | 93% | 91% | 1% |
+| Not lumped: random kept topics one page could answer, judged blind | 36 of 40 | 39 | **35** | 36 | 38 | 36 | 39 | |
+| Right stage: random topics where a blind judge agrees on keep or drop | 36 of 40 | 36 | **35** | 38 | 38 | 40 | 38 | |
 
-**How to read it.** Milestone 2 has not passed yet: it needs all three checks to pass on two runs
-in a row. Runs 1 and 3 passed all three; runs 2 and 4 each missed by a little. Between runs 2 and
-3 the stage rule and the split pass were sharpened for questions about one vendor (see below), so
-runs 3 and 4 use the same code. Each check passed in three of the four runs, and each sits close
-to its line, because Claude's grouping varies from run to run.
+**How to read it.** Milestone 2 passes: all three checks passed on runs 5 and 6, two runs in a
+row with the same code and phrases. Runs 1 to 4 grouped the phrases seed by seed, because there
+were more than the 1,000 a single call then took; each check passed most runs but never all
+three twice in a row. Runs 5 and 6 group them all in one call. Between runs 2 and 3, the stage
+rule and the split pass were also sharpened for questions about one vendor (see below). The lump
+check passed run 5 exactly on its line (36), so it has the least room.
 
 **What the checks measure.**
 - *Not split* uses the 17 commercial answer-key questions the milestone 1 review marked found and
-  that have two or more matched phrases, and those phrases (1,216 pairs on the published run). Random grouping into
+  that have two or more matched phrases, and those phrases (1,263 pairs on the published run). Random grouping into
   topics of the same sizes scores 1%, so the grouping is doing real work.
 - *Not lumped:* 40 kept topics with two or more phrases are picked with a fixed seed, and Claude
   Fable, a different model from the one that grouped them, judges each one from its phrases alone.
@@ -39,12 +40,11 @@ to its line, because Claude's grouping varies from run to run.
 - *Right stage:* 40 topics are picked with a fixed seed, and Claude Fable marks each one's stage
   from its phrases alone, without seeing the first mark. What counts is agreement on keep or drop.
 
-**What is still weak.** Splitting and lumping pull against each other: the sharper split pass
-fixed the lumps of run 2 but cost splitting a point or two. The stage judge now disagrees on two
-topics in 40, both borderline, such as "How do you use the Brevo email API and relay?". Some
-topics are near-duplicates. With brand searches the demo has more than 1,000 phrases, so they are
-grouped in batches by nearest seed and then merged, which splits more easily than one pass. No
-person has checked the topics.
+**What is still weak.** The lumps the judge still finds mix one vendor's questions, such as "Why
+is Mailchimp so bad or expensive?" (quality and price) or "What features does Brevo have?". The
+stage judge disagrees on a few borderline topics, such as "Hostinger email automation?". The one
+grouping call's answer reaches about 54,000 tokens, close to Claude's output limit, so a much
+larger site would fall back to grouping in batches. No person has checked the topics.
 
 **How it got here.**
 - The first version asked for one question per topic, read strictly, and judged 20 topics. It
@@ -68,10 +68,13 @@ person has checked the topics.
   account. The stage rule now separates someone who already uses a provider (their account, a
   task in it: learning) from someone deciding (its features, plans, integrations, trust, signing
   up: choosing), and the split pass also pulls apart one vendor's offer from a comparison of
-  several, and one audience from another. Stage agreement rose to 38 of 40.
+  several, and one audience from another. Stage agreement rose to 38 of 40, but splitting fell to
+  84% on run 4.
+- Grouping all the phrases in one call, instead of seed by seed, then passed all three checks on
+  runs 5 and 6.
 - The rule and the sample size changed after seeing the results. Claude Fable also reviewed the
   topics twice along the way.
 
-**Cost.** 39 Claude calls, about 10 minutes of model time, $1.69 at list price (covered by a
+**Cost.** 31 Claude calls, about 13 minutes of model time, $1.93 at list price (covered by a
 Claude subscription). Every call is in
 [trace.jsonl](../../demo/email-marketing/runs/2026-10-30-0946/trace.jsonl).

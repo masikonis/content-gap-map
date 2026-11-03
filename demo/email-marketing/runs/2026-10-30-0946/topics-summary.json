@@ -1,61 +1,57 @@
 {
   "real_phrases": 3355,
-  "buyer_phrases": 2136,
-  "after_merging_rewordings": 1981,
-  "topics": 574,
-  "topics_before_merge": 475,
-  "topics_split_off": 142,
+  "buyer_phrases": 2048,
+  "after_merging_rewordings": 1894,
+  "topics": 442,
+  "topics_before_merge": 311,
+  "topics_split_off": 146,
   "largest_topics": [
-    46,
+    56,
+    41,
+    38,
     34,
-    33,
-    30,
-    30
+    33
   ],
-  "single_phrase_topics": 246,
-  "left_out_by_claude": 11,
-  "names_fixed": 9,
+  "single_phrase_topics": 158,
+  "left_out_by_claude": 12,
+  "names_fixed": 3,
   "names_not_questions": 0,
   "possible_duplicate_topic_pairs": 35,
   "topics_by_stage": {
-    "learning": 188,
-    "comparing": 141,
-    "choosing": 245,
+    "learning": 154,
+    "comparing": 118,
+    "choosing": 170,
     "unknown": 0
   },
   "phrases_by_stage": {
-    "learning": 749,
-    "comparing": 597,
-    "choosing": 790,
+    "learning": 711,
+    "comparing": 564,
+    "choosing": 773,
     "unknown": 0
   },
-  "kept_topics": 386,
+  "kept_topics": 288,
   "pair_test": {
     "questions": 17,
-    "same_question_pairs": 1216,
-    "share_together": 0.663,
-    "share_together_per_question": 0.842,
-    "share_apart": 0.994,
+    "same_question_pairs": 1263,
+    "share_together": 0.796,
+    "share_together_per_question": 0.913,
+    "share_apart": 0.995,
     "random_baseline": {
-      "share_together": 0.007,
-      "share_together_per_question": 0.007,
-      "share_apart": 0.995
+      "share_together": 0.003,
+      "share_together_per_question": 0.003,
+      "share_apart": 0.994
     }
   },
-  "split_check_passes": false,
+  "split_check_passes": true,
   "lump_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "one_page": 38,
+    "one_page": 39,
     "passes": true,
     "not_one_page": [
       {
-        "topic": "What is the best open source or self-hosted transactional email?",
-        "reason": "'transactional email open source / self hosted' is an options roundup, 'listmonk transactional email' is a listmonk-specific how-to, and 'transactional email coolify' is a deployment how-to; different pages."
-      },
-      {
-        "topic": "How does Brevo integrate with Zapier and n8n?",
-        "reason": "'brevo n8n' and 'brevo zapier / zapier integration' are setups for two different vendors; each needs its own integration guide."
+        "topic": "What features does Brevo have?",
+        "reason": "Mixed intents: 'brevo key features', 'brevo ui', 'does brevo have an app' fit a features overview, but 'brevo restaurant' (industry use case), 'brevo time zone' (settings how-to), 'brevo resend to non openers' and 'brevo utm tracking' (task how-tos) and 'brevo open rate' need different pages."
       }
     ]
   },
@@ -67,12 +63,12 @@
     "passes": true,
     "keep_or_drop_differs": [
       {
-        "topic": "How does email automation work for business?",
+        "topic": "When is email marketing most effective?",
         "marked": "comparing",
         "judge": "learning"
       },
       {
-        "topic": "How do you use the Brevo email API and relay?",
+        "topic": "Hostinger email automation?",
         "marked": "learning",
         "judge": "choosing"
       }

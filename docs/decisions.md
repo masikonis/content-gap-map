@@ -465,8 +465,12 @@ reviewing in a browser is needed often.
   and choosing a provider. A phrase about one named vendor, compared or not, is its own topic.
 - **How:** plain code first merges rewordings: the same words in any order or form, ignoring years
   and the words reddit, quora and youtube. Claude then groups the rest under the topic rule. Up to
-  1,000 phrases go in one call, so a question is never split across calls; a longer list is split
-  by its nearest seed. Each topic is named as a question ending in "?".
+  2,500 phrases go in one call, so a question is never split across calls; a longer list is split
+  by its nearest seed (seeds and compared brands). Each topic is named as a question ending in
+  "?". The limit was 1,000 until brand searches pushed the demo to about 1,900 phrases: grouped
+  seed by seed, each check passed most runs but never two in a row; in one call, the next two
+  runs passed all three. What it costs: the one call's answer reached 54,000 tokens, close to
+  Claude's output limit, so a much longer list falls back to seed batches.
 - **Merge pass, always:** a second call sees every topic with its phrases and joins topics one
   page could answer under a new name, without folding a vendor topic into a general one. It also
   catches the phrases the first call left out, which code keeps as their own topics and counts.

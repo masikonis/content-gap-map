@@ -40,7 +40,7 @@ from cgm.text import words
 
 MODEL = "sonnet"
 TAG_BATCH = 150
-ONE_PASS = 1000
+ONE_PASS = 2500
 GROUP_BATCH = 400
 MERGE_EXAMPLES = 15
 LUMP_MODEL = "fable"  # an outside judge: not the model that made the topics
