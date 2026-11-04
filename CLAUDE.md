@@ -51,6 +51,9 @@
 - `src/cgm/sitemaps.py`: milestone 3, rung 1. Reads every compared site's sitemaps (robots.txt,
   sitemap indexes, gzip) through `PageFetcher`, parses them with defusedxml, and names every
   problem in the summary. Plain code.
+- `src/cgm/pages.py`: milestone 3, rung 1. Plain code drops other languages, other sites, files
+  and duplicates; Claude keeps the addresses that could answer a comparing or choosing buyer.
+  Reports the share of the site-search key's first-ranked pages kept.
 - `src/cgm/stage.py`: the funnel-stage rule (learning, comparing, choosing), shared by scoring and
   grouping. Only learning is dropped.
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
@@ -75,6 +78,7 @@ uv run cgm predicted <client>          # optional: predicted AI-style questions,
 uv run cgm score <client>              # scores the latest run against the answer key
 uv run cgm topics <client>             # groups the latest run's buyer phrases into topics
 uv run cgm sitemaps <client>           # reads every compared site's sitemap into the latest run
+uv run cgm pages <client>              # keeps the sitemap pages that could answer a buyer
 ```
 
 ## Data layout
@@ -86,7 +90,8 @@ Client data lives under `private/` (gitignored); the public demo uses the same l
 private/blocklist.txt          terms the local pre-commit hook refuses to commit
 <client>/client.toml           sites, seeds, language, country, site type
 <client>/decisions.md          decisions and findings about this client (private clients only)
-<client>/answer-key/           "People also ask" questions, buyer-tags.csv and stage-tags.csv
+<client>/answer-key/           "People also ask" questions, buyer-tags.csv, stage-tags.csv, and
+                               site-search-<date>.csv (Google's pick of each site's page)
 <client>/search-console/       Search Console export zips, one per filter (own site only)
 <client>/runs/<date-time>/     one folder per run:
     autocomplete.csv, responses/       collected suggestions and Google's raw replies
@@ -98,6 +103,7 @@ private/blocklist.txt          terms the local pre-commit hook refuses to commit
     reviewed.csv, reviewed-summary.json   the reviewed verdicts, once a review is done
     topics.csv, topics-summary.json    buyer phrases grouped into topics with a funnel stage, and the checks
     sitemaps.csv, sitemaps-summary.json   every page address in each site's sitemaps, and problems
+    pages.csv, pages-summary.json      each address kept or dropped, with the reason, and the key test
     first-score/                       a score kept as published, when a later one replaces it
 ```
 

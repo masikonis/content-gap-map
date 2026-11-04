@@ -627,3 +627,21 @@ but brings its own fetching, outside the polite rules.
 
 **Why:** the reader is small, and every request staying in `fetch.py` keeps the crawling rules in
 one place.
+
+## 2026-11-04: Pages are kept by code rules first, then Claude
+
+**Chose:** from every sitemap address, plain code first drops the exact cases: pages in another
+language than the client's (a language code as the first part of the path), other websites,
+files that aren't pages (PDFs, images), and duplicates of the same address. Claude (Sonnet) then
+reads the remaining addresses and keeps the ones whose page could answer a buyer who is comparing
+options or choosing a provider, under the same stage rule as milestones 1 and 2. Every address is
+saved with the reason it was kept or dropped. A page Claude gives no verdict for is dropped and
+counted, per the rule that a failed check is a miss.
+
+**Alternatives:** code rules alone, exact and free but tuned per site, and unable to tell a buyer
+guide from a how-to post; Claude alone on every address, one rule for any site but about twice the
+calls, with Claude doing exact work code does better.
+
+**Why:** code for what must be exact, AI for what must be judged. What it costs: Claude judges
+from the address alone, so an address that says little (`/p/12345`) waits for rung 2, which reads
+page outlines.

@@ -75,6 +75,7 @@ uv run cgm predicted <name>      # optional: predicted AI-assistant questions, s
 uv run cgm score <name>          # score the run against an answer key in private/<name>/answer-key/
 uv run cgm topics <name>         # group the run's buyer phrases into commercial topics
 uv run cgm sitemaps <name>       # read every compared site's sitemap into the run
+uv run cgm pages <name>          # keep the pages that could answer a commercial buyer
 ```
 
 ## License
