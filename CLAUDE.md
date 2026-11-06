@@ -55,8 +55,8 @@
   and duplicates; Claude keeps the addresses that could answer a comparing or choosing buyer.
   Reports the share of the site-search key's first-ranked pages kept.
 - `src/cgm/withhold.py`: masks every `private/blocklist.txt` term in a demo run's text files with
-  "[withheld]", so public data that happens to name a client never reaches git. Run it before
-  committing a demo run.
+  "[withheld]", so public data that happens to name a client never reaches git. Run it last,
+  just before committing a demo run: a later step reading masked files can merge two addresses.
 - `src/cgm/stage.py`: the funnel-stage rule (learning, comparing, choosing), shared by scoring and
   grouping. Only learning is dropped.
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
