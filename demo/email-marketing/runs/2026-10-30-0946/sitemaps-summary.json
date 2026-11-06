@@ -1,19 +1,19 @@
 {
   "Mailchimp": {
     "sitemaps_read": 5,
-    "pages": 5415,
+    "pages": 5416,
     "problems": [
       "https://mailchimp.com/presents/sitemap/sitemap-index.xml: not a readable sitemap (ParseError)"
     ]
   },
   "Brevo": {
     "sitemaps_read": 7,
-    "pages": 7119,
+    "pages": 7126,
     "problems": []
   },
   "MailerLite": {
     "sitemaps_read": 5,
-    "pages": 3442,
+    "pages": 3446,
     "problems": []
   }
 }

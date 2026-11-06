@@ -1,52 +1,42 @@
 {
   "Mailchimp": {
-    "pages": 5415,
-    "kept": 1271,
+    "pages": 5416,
+    "kept": 1113,
     "by_reason": {
-      "dropped by Claude": 4144,
-      "kept by Claude": 1271
+      "dropped by Claude": 4303,
+      "kept by Claude": 1113
     }
   },
   "Brevo": {
-    "pages": 7119,
-    "kept": 720,
+    "pages": 7126,
+    "kept": 563,
     "by_reason": {
-      "dropped by Claude": 1097,
-      "kept by Claude": 720,
-      "other language": 5302
+      "dropped by Claude": 1256,
+      "kept by Claude": 563,
+      "other language": 5307
     }
   },
   "MailerLite": {
-    "pages": 3442,
-    "kept": 437,
+    "pages": 3446,
+    "kept": 397,
     "by_reason": {
-      "kept by Claude": 437,
-      "dropped by Claude": 1430,
+      "kept by Claude": 397,
+      "dropped by Claude": 1471,
       "duplicate": 1,
-      "other language": 1574
+      "other language": 1577
     }
   },
   "key_test": {
     "searches": 60,
-    "kept": 51,
-    "share_kept": 0.85,
+    "kept": 55,
+    "share_kept": 0.917,
     "target": 0.9,
-    "passes": false,
+    "passes": true,
     "missed": [
       {
         "site": "Mailchimp",
         "question": "Why are people leaving Mailchimp?",
         "url": "https://mailchimp.com/resources/how-do-i-deal-with-email-list-churn/"
-      },
-      {
-        "site": "Mailchimp",
-        "question": "Is email marketing still worth it in 2026?",
-        "url": "https://mailchimp.com/resources/email-marketing-trends/"
-      },
-      {
-        "site": "Mailchimp",
-        "question": "Are newsletters still relevant in 2026?",
-        "url": "https://mailchimp.com/resources/email-marketing-trends/"
       },
       {
         "site": "Mailchimp",
@@ -67,16 +57,6 @@
         "site": "Brevo",
         "question": "Which AI is best for creating newsletters?",
         "url": "https://www.brevo.com/blog/ai-email-marketing/"
-      },
-      {
-        "site": "MailerLite",
-        "question": "Is email marketing still worth it in 2026?",
-        "url": "https://www.mailerlite.com/blog/email-marketing-trends"
-      },
-      {
-        "site": "MailerLite",
-        "question": "Are newsletters still relevant in 2026?",
-        "url": "https://www.mailerlite.com/blog/email-marketing-trends"
       }
     ]
   }
