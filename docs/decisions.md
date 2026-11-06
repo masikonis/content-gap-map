@@ -462,7 +462,11 @@ reviewing in a browser is needed often.
   fully answer every phrase in it. A variation that page would cover in a section (a year, "free",
   "best", a device) stays in the topic. Three kinds of phrase need different pages even on one
   subject: asking about the activity itself ("is email marketing hard"), how to do it yourself,
-  and choosing a provider. A phrase about one named vendor, compared or not, is its own topic.
+  and choosing a provider. A phrase about one named vendor, compared or not, is its own topic, and
+so is a phrase about one named place (a town, city or area): a local business answers each with a
+page for that place, so "piano lessons springfield" and "piano lessons shelbyville" are two
+topics. Without the rule, every town would land in one "who offers this in my city" topic, hiding
+the gap a local business can act on: a competitor with pages for towns it serves too.
 - **How:** plain code first merges rewordings: the same words in any order or form, ignoring years
   and the words reddit, quora and youtube. Claude then groups the rest under the topic rule. Up to
   2,500 phrases go in one call, so a question is never split across calls; a longer list is split

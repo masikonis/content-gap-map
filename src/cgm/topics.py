@@ -88,7 +88,10 @@ Three kinds of phrase need different answers, so keep them apart even on the sam
 - how to do it yourself: "how to learn piano at home";
 - choosing a provider: "easiest piano school for beginners", "cheapest piano lessons".
 A phrase that names one vendor asks about that vendor: "does acme offer piano lessons" is not the
-same topic as "piano lessons for adults".
+same topic as "piano lessons for adults". A phrase that names a place (a town, city or area) is
+about that place, and each place is its own topic, since a business would answer it with a page
+for that place: "piano lessons springfield" and "piano lessons shelbyville" are two topics, and
+neither belongs with "piano lessons near me".
 
 Put every phrase in exactly one topic; a phrase unlike any other is a topic of its own. Name each
 topic as a short plain question ending in "?", such as "How much do piano lessons cost?".
@@ -111,8 +114,8 @@ MERGE_PROMPT = """Below are numbered topics, each a question buyers ask, with it
 were grouped in separate batches, so some mean the same thing. List the groups of topics that
 should be merged because one page could fully answer every phrase in them, and give each merged group
 a new short question as its name, ending in "?". Leave out topics with no duplicate. Do not merge
-topics that only share a subject or a vendor, and do not merge a topic about one vendor into a
-general one.
+topics that only share a subject or a vendor, and do not merge a topic about one vendor or one
+place into a general one or into another place's.
 
 Topics:
 {topics}"""
@@ -129,8 +132,8 @@ and move them out. Common cases: asking about the activity itself ("are piano le
 next to choosing a provider ("cheapest piano school"); how to do it yourself next to which provider
 to pick; setup next to price; two different vendors or products; what one vendor offers next to
 a comparison of several vendors; one audience or use next to another ("for schools", "for
-choirs"). A variation one page covers in a
-section, such as a device or a free option, stays.
+choirs"); two different places ("springfield", "shelbyville"), each of which gets its own topic.
+A variation one page covers in a section, such as a device or a free option, stays.
 
 For each group of phrases to move out, give the topic number, the phrase numbers within that topic,
 and a short question ending in "?" as the new topic's name. Phrases moved out together must share
@@ -167,7 +170,8 @@ LUMP_PROMPT = """Each numbered group below holds search phrases that were put to
 topic. For each group, decide whether one good page could fully answer every phrase in it.
 Variations one page would cover in a section, such as a device or a free option, are fine. A group
 fails when it needs different pages: for example price and setup, whether the activity is worth
-doing next to which provider to choose, or questions about different vendors. Give a short reason,
+doing next to which provider to choose, or questions about different vendors or different
+places (towns, cities, areas). Give a short reason,
 naming the phrases that differ.
 
 Groups:
