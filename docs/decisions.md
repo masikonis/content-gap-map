@@ -645,3 +645,18 @@ calls, with Claude doing exact work code does better.
 **Why:** code for what must be exact, AI for what must be judged. What it costs: Claude judges
 from the address alone, so an address that says little (`/p/12345`) waits for rung 2, which reads
 page outlines.
+
+## 2026-11-06: Private terms in the public demo are masked, not dropped
+
+**Chose:** before a demo run is committed, `cgm withhold` replaces every term on the private
+blocklist in the run's text files with "[withheld]". The first sitemap run hit this: a compared
+site's public blog has posts named after terms on the list, and the local pre-commit hook refused
+the commit. The results page says how many were masked, without naming them.
+
+**Alternatives:** dropping the matching rows, which would make the published counts disagree
+with the files; keeping the sitemap and page lists out of git, which would leave 16,000 verdicts
+uncheckable.
+
+**Why:** nothing committed may let a reader link the demo to a client, and every other number
+stays public and checkable. What it costs: a handful of public addresses show "[withheld]" where a
+word was.

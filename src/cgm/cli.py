@@ -3,7 +3,8 @@
 import argparse
 from pathlib import Path
 
-from cgm import autocomplete, pages, predicted, score, searchconsole, sitemaps, topics, websearch
+from cgm import (autocomplete, pages, predicted, score, searchconsole, sitemaps, topics, websearch,
+                 withhold)
 from cgm.client import load_client
 
 
@@ -21,7 +22,8 @@ def main() -> None:
                             ("score", "score a run against the answer key"),
                             ("topics", "group a run's buyer phrases into topics"),
                             ("sitemaps", "read every compared site's sitemap into a run"),
-                            ("pages", "keep the sitemap pages that could answer a buyer")]:
+                            ("pages", "keep the sitemap pages that could answer a buyer"),
+                            ("withhold", "mask private blocklist terms in a public demo run")]:
         step = steps.add_parser(name, help=help_text)
         step.add_argument("client", help="client folder under private/, or a path such as demo/email-marketing")
         step.add_argument("--run", help="run folder name (default: the latest run)")
@@ -53,3 +55,5 @@ def main() -> None:
         sitemaps.run(client, folder)
     elif args.step == "pages":
         pages.run(client, folder)
+    elif args.step == "withhold":
+        withhold.run(folder)

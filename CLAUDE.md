@@ -54,6 +54,9 @@
 - `src/cgm/pages.py`: milestone 3, rung 1. Plain code drops other languages, other sites, files
   and duplicates; Claude keeps the addresses that could answer a comparing or choosing buyer.
   Reports the share of the site-search key's first-ranked pages kept.
+- `src/cgm/withhold.py`: masks every `private/blocklist.txt` term in a demo run's text files with
+  "[withheld]", so public data that happens to name a client never reaches git. Run it before
+  committing a demo run.
 - `src/cgm/stage.py`: the funnel-stage rule (learning, comparing, choosing), shared by scoring and
   grouping. Only learning is dropped.
 - `src/cgm/text.py`: plain-code word matching (stems, seed words) shared by scoring and grouping.
@@ -79,6 +82,7 @@ uv run cgm score <client>              # scores the latest run against the answe
 uv run cgm topics <client>             # groups the latest run's buyer phrases into topics
 uv run cgm sitemaps <client>           # reads every compared site's sitemap into the latest run
 uv run cgm pages <client>              # keeps the sitemap pages that could answer a buyer
+uv run cgm withhold demo/<name>        # masks private terms in a demo run before committing it
 ```
 
 ## Data layout
