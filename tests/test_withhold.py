@@ -20,3 +20,8 @@ def test_run_masks_text_files_and_leaves_others(tmp_path, monkeypatch):
     run(run_folder)
     assert "[withheld]-vs-us" in (run_folder / "pages.csv").read_text()
     assert (run_folder / "raw.bin").read_bytes() == b"acme"
+
+
+def test_a_term_of_several_words_matches_however_an_address_joins_them():
+    text, count = mask("/acme-piano/ /Acme_Piano /acme+piano /acme%20piano", ["acme piano"])
+    assert text == "/[withheld]/ /[withheld] /[withheld] /[withheld]" and count == 4
