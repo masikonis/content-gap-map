@@ -36,7 +36,8 @@ PROMPT = """These are numbered page addresses from the website of {site}, one of
 List the numbers of the pages that could answer a question a buyer asks while comparing options
 or choosing a provider: pricing and plans, features and what the product offers, comparisons and
 alternatives, buying guides and "best" lists, reviews, case studies and customer stories, trust
-and security, and signing up. Leave out pages for people who already use the product (help
+and security, signing up, and whether the activity is worth doing at all (trends, statistics,
+results, return on investment). Leave out pages for people who already use the product (help
 articles, how-to inside the product, developer docs, release notes), legal pages, careers, press,
 and pages that only teach the subject (definitions, general how-to, templates and example
 galleries). When an address could go either way, keep it.

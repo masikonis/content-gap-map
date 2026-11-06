@@ -603,7 +603,8 @@ could answer a commercial buyer topic. It is tested against an answer key built 
 each of milestone 1's 20 commercial "People also ask" questions is searched on each compared site
 (`site:mailchimp.com How much does Mailchimp cost per month?`) in a real Chrome session, and the
 first result is the page that matters. **The target is 90% of those pages kept,** with the
-number of pages kept per site reported next to it. The key is committed before the tool runs.
+number of pages kept per site reported next to it, on two runs in a row, as for milestone 2,
+since Claude's keep verdicts can vary from run to run. The key is committed before the tool runs.
 
 **Alternatives:** checking only that every sitemap address was read and dropped by clear rules,
 which proves the code reads files but not that it keeps the right pages; a person labelling a
@@ -634,7 +635,10 @@ one place.
 language than the client's (a language code as the first part of the path), other websites,
 files that aren't pages (PDFs, images), and duplicates of the same address. Claude (Sonnet) then
 reads the remaining addresses and keeps the ones whose page could answer a buyer who is comparing
-options or choosing a provider, under the same stage rule as milestones 1 and 2. Every address is
+options or choosing a provider, under the same stage rule as milestones 1 and 2. That includes
+pages on whether the activity is worth doing at all (trends, statistics, results), which the stage
+rule counts as comparing; the first run dropped them as teaching, missing 6 of 60 key pages, and
+the rule was aligned after that result. Every address is
 saved with the reason it was kept or dropped. A page Claude gives no verdict for is dropped and
 counted, per the rule that a failed check is a miss.
 
