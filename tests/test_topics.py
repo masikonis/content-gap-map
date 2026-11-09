@@ -92,3 +92,13 @@ def test_stage_mark_keeps_an_item_with_no_verdict(monkeypatch, tmp_path):
     marks = stage.mark(["what is x", "x pricing"], "sonnet", tmp_path / "trace.jsonl", "test")
     assert marks == ["learning", "unknown"]
     assert [stage.kept(m) for m in marks] == [False, True]
+
+
+def test_vote_keeps_pairs_most_groupings_agree_on():
+    from cgm.topics import vote
+    first = [("Cost?", ["cost", "price", "fees"]), ("Near me?", ["near me"])]
+    second = [("Cost?", ["cost", "price"]), ("Fees?", ["fees", "near me"])]
+    third = [("Price?", ["cost", "price"]), ("Fees?", ["fees"]), ("Near me?", ["near me"])]
+    topics = sorted(vote([first, second, third]))
+    # cost and price agree in all three; fees joins nothing in two of three, near me neither.
+    assert topics == [("Cost?", ["cost", "price"]), ("Fees?", ["fees"]), ("Near me?", ["near me"])]

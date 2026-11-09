@@ -7,7 +7,8 @@
 3. Claude groups the phrases into topics: one topic is what one good page would answer, so one
    page could fully answer every phrase in it. A list up to ONE_PASS phrases is grouped in one
    call; a longer one is split by seed. A merge pass, seeing every topic's phrases, then joins
-   topics that mean the same.
+   topics that mean the same. This is done VOTES times, and two phrases share a topic only when
+   most of the groupings put them together, which steadies Claude's run-to-run variation.
 4. A split pass shows Claude each topic of two or more phrases and moves out phrases that a page
    answering the rest would not answer, into new topics.
 5. Every topic name must be a question; Claude renames the ones that aren't.
@@ -27,7 +28,7 @@ import csv
 import json
 import random
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from itertools import combinations
 from pathlib import Path
 
@@ -41,6 +42,7 @@ from cgm.text import words
 MODEL = "sonnet"
 TAG_BATCH = 150
 ONE_PASS = 2500
+VOTES = 3  # grouping runs; two phrases share a topic only when most runs put them together
 GROUP_BATCH = 400
 MERGE_EXAMPLES = 15
 LUMP_MODEL = "fable"  # an outside judge: not the model that made the topics
@@ -276,10 +278,10 @@ def group_batch(phrases: list[str], trace: Path, label: str) -> tuple[list, int]
     return assign(answer["topics"], phrases)
 
 
-def group(phrases: list[str], seeds: list[str], trace: Path) -> tuple[list, int, int]:
+def group(phrases: list[str], seeds: list[str], trace: Path, vote: int = 1) -> tuple[list, int, int]:
     """Topics, phrases left out by the grouping calls, and topics before the merge pass."""
     if len(phrases) <= ONE_PASS:
-        topics, missing = group_batch(phrases, trace, "topics: group all")
+        topics, missing = group_batch(phrases, trace, f"topics: group all (vote {vote})")
     else:
         by_seed = defaultdict(list)
         for p in phrases:
@@ -288,15 +290,48 @@ def group(phrases: list[str], seeds: list[str], trace: Path) -> tuple[list, int,
         for seed, members in by_seed.items():
             for i in range(0, len(members), GROUP_BATCH):
                 found, left_out = group_batch(members[i:i + GROUP_BATCH], trace,
-                                              f"topics: group {seed} {i // GROUP_BATCH + 1}")
+                                              f"topics: group {seed} {i // GROUP_BATCH + 1} (vote {vote})")
                 topics += found
                 missing += left_out
     # The merge pass always runs: it rejoins split questions and the phrases a grouping call
     # left out.
     listing = numbered([f"{name}: {'; '.join(members[:MERGE_EXAMPLES])}" for name, members in topics])
     answer = claude.ask(MERGE_PROMPT.format(topics=listing), MERGE_SCHEMA, MODEL,
-                        trace, "topics: merge")
+                        trace, f"topics: merge (vote {vote})")
     return apply_merges(topics, answer["merges"]), missing, len(topics)
+
+
+def vote(groupings: list[list[tuple[str, list[str]]]]) -> list[tuple[str, list[str]]]:
+    """Join two phrases when most groupings put them in the same topic, and keep the joined sets
+    as topics (a phrase no majority places with another is a topic of its own). Each topic takes
+    the name its phrases carried most often."""
+    together, names = Counter(), defaultdict(Counter)
+    for topics in groupings:
+        for name, members in topics:
+            for p in members:
+                names[p][name] += 1
+            together.update(combinations(sorted(members), 2))
+    parent = {p: p for p in names}
+
+    def root(p):
+        while parent[p] != p:
+            parent[p] = parent[parent[p]]
+            p = parent[p]
+        return p
+
+    for (a, b), count in together.items():
+        if count * 2 > len(groupings):
+            parent[root(a)] = root(b)
+    sets = defaultdict(list)
+    for p in sorted(names):
+        sets[root(p)].append(p)
+    result = []
+    for members in sets.values():
+        tally = Counter()
+        for p in members:
+            tally.update(names[p])
+        result.append((min(tally, key=lambda n: (-tally[n], n)), members))
+    return result
 
 
 def ensure_questions(topics: list[tuple[str, list[str]]], trace: Path) -> tuple[list, int]:
@@ -424,13 +459,17 @@ def run(client: Client, run_folder: Path) -> None:
           f"rewordings", flush=True)
 
     brands = [site.name.lower() for site in [client.primary] + client.competitors]
-    topics, missing, before_merge = group(list(variants), list(dict.fromkeys(client.seeds + brands)), trace)
+    seeds = list(dict.fromkeys(client.seeds + brands))
+    groupings = [group(list(variants), seeds, trace, v) for v in range(1, VOTES + 1)]
+    topics = vote([g[0] for g in groupings])
+    missing, before_merge = sum(g[1] for g in groupings), [len(g[0]) for g in groupings]
     topics, split_off = split(topics, trace)
     topics, renamed = ensure_questions(topics, trace)
     topics = sorted(topics, key=lambda t: -sum(len(variants[p]) for p in t[1]))
     marked = stages(topics, trace)
-    print(f"{before_merge} topics grouped, {len(topics)} after merging and splitting ({split_off} split "
-          f"off); {missing} phrases left out by grouping; {renamed} names fixed", flush=True)
+    print(f"{before_merge} topics in the {VOTES} groupings, {len(topics)} after the vote and splitting "
+          f"({split_off} split off); {missing} phrases left out by grouping; {renamed} names fixed",
+          flush=True)
 
     topic_of = {}
     with open(run_folder / "topics.csv", "w", newline="", encoding="utf-8") as f:
@@ -446,7 +485,7 @@ def run(client: Client, run_folder: Path) -> None:
     sizes = sorted((sum(len(variants[p]) for p in members) for _, members in topics), reverse=True)
     summary = {"real_phrases": len(real), "buyer_phrases": len(buyers),
                "after_merging_rewordings": len(variants), "topics": len(topics),
-               "topics_before_merge": before_merge, "topics_split_off": split_off,
+               "topics_in_each_grouping": before_merge, "topics_split_off": split_off,
                "largest_topics": sizes[:5],
                "single_phrase_topics": sizes.count(1), "left_out_by_claude": missing,
                "names_fixed": renamed,

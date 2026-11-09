@@ -473,8 +473,15 @@ the gap a local business can act on: a competitor with pages for towns it serves
   by its nearest seed (seeds and compared brands). Each topic is named as a question ending in
   "?". The limit was 1,000 until brand searches pushed the demo to about 1,900 phrases: grouped
   seed by seed, each check passed most runs but never two in a row; in one call, the next two
-  runs passed all three. What it costs: the one call's answer reached 54,000 tokens, close to
-  Claude's output limit, so a much longer list falls back to seed batches.
+  runs passed all three. What it costs: the one call's answer reached 54,000 tokens on the demo
+  and 81,000 on a larger list, so a much longer list falls back to seed batches.
+- **Three groupings, majority vote:** the grouping and its merge pass run three times, and plain
+  code joins two phrases only when at least two of the three put them together; a phrase no
+  majority places with another is a topic of its own, and each topic takes the name its phrases
+  carried most often. After a place rule was added, single groupings passed each check most runs
+  but missed one check on each of the next two; with the vote, the next two runs passed all
+  three. What it costs: three grouping calls instead of one, about $1.30 more per run at list
+  price and twice the time.
 - **Merge pass, always:** a second call sees every topic with its phrases and joins topics one
   page could answer under a new name, without folding a vendor topic into a general one. It also
   catches the phrases the first call left out, which code keeps as their own topics and counts.
@@ -489,8 +496,6 @@ the gap a local business can act on: a competitor with pages for towns it serves
 - One question per topic, read strictly (one answer satisfies every phrase). An outside judge then
   failed topics one page answers easily, such as newsletter software for Windows or Mac, and
   splitting further to satisfy it broke the split check: both checks failed.
-- A majority vote of three groupings, to steady Claude's run-to-run variation: three times the
-  grouping calls and about 40 lines of code, kept in reserve since one call was enough.
 - Starting each run from the last run's topics: the most stable, and useful for tracking a client
   month to month, but a run would then test placing phrases rather than grouping them.
 - Running the merge pass again after the split, to rejoin near-duplicate topics the split makes.

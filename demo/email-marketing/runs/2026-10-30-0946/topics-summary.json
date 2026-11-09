@@ -1,66 +1,84 @@
 {
   "real_phrases": 3355,
-  "buyer_phrases": 2018,
-  "after_merging_rewordings": 1866,
-  "topics": 605,
-  "topics_before_merge": 575,
-  "topics_split_off": 47,
-  "largest_topics": [
-    46,
-    40,
-    33,
-    30,
-    29
+  "buyer_phrases": 2062,
+  "after_merging_rewordings": 1908,
+  "topics": 568,
+  "topics_in_each_grouping": [
+    332,
+    580,
+    561
   ],
-  "single_phrase_topics": 284,
-  "left_out_by_claude": 20,
-  "names_fixed": 8,
+  "topics_split_off": 24,
+  "largest_topics": [
+    56,
+    50,
+    37,
+    35,
+    32
+  ],
+  "single_phrase_topics": 268,
+  "left_out_by_claude": 84,
+  "names_fixed": 88,
   "names_not_questions": 0,
-  "possible_duplicate_topic_pairs": 25,
+  "possible_duplicate_topic_pairs": 79,
   "topics_by_stage": {
-    "learning": 203,
-    "comparing": 139,
-    "choosing": 263,
+    "learning": 191,
+    "comparing": 129,
+    "choosing": 248,
     "unknown": 0
   },
   "phrases_by_stage": {
-    "learning": 632,
-    "comparing": 537,
-    "choosing": 849,
+    "learning": 593,
+    "comparing": 564,
+    "choosing": 905,
     "unknown": 0
   },
-  "kept_topics": 402,
+  "kept_topics": 377,
   "pair_test": {
     "questions": 17,
-    "same_question_pairs": 1216,
-    "share_together": 0.633,
-    "share_together_per_question": 0.827,
-    "share_apart": 0.997,
+    "same_question_pairs": 1267,
+    "share_together": 0.658,
+    "share_together_per_question": 0.86,
+    "share_apart": 0.992,
     "random_baseline": {
-      "share_together": 0.005,
-      "share_together_per_question": 0.003,
-      "share_apart": 0.996
+      "share_together": 0.003,
+      "share_together_per_question": 0.001,
+      "share_apart": 0.995
     }
   },
-  "split_check_passes": false,
+  "split_check_passes": true,
   "lump_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "one_page": 40,
+    "one_page": 38,
     "passes": true,
-    "not_one_page": []
+    "not_one_page": [
+      {
+        "topic": "Does Mailchimp integrate with Zoho?",
+        "reason": "'mailchimp zoho crm integration' / 'mailchimp zoho crm' is about connecting Mailchimp to Zoho CRM, while 'mailchimp zoho campaigns' points to comparing Mailchimp with the competing Zoho Campaigns product; these need different pages."
+      },
+      {
+        "topic": "How do transactional emails work in Salesforce Marketing Cloud and Pardot?",
+        "reason": "'transactional email pardot' concerns Pardot/Account Engagement, a different Salesforce product with its own setup, while 'transactional email marketing cloud' and 'commercial vs transactional email marketing cloud' concern Marketing Cloud; different product pages."
+      }
+    ]
   },
   "stage_check": {
     "judge": "fable",
     "topics_checked": 40,
-    "same_keep_or_drop": 39,
-    "same_stage": 38,
+    "same_keep_or_drop": 38,
+    "same_stage": 35,
     "passes": true,
     "keep_or_drop_differs": [
       {
-        "topic": "Brevo Laravel?",
-        "marked": "learning",
-        "judge": "choosing"
+        "topic": "Does GoDaddy offer transactional email?",
+        "marked": "choosing",
+        "judge": "learning"
+      },
+      {
+        "topic": "Does Hostinger offer email automation?",
+        "marked": "choosing",
+        "judge": "learning"
       }
     ]
   }

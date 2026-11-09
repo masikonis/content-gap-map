@@ -44,9 +44,9 @@
 - `src/cgm/websearch.py`: optional source, off by default. Claude web search for questions people
   wrote, then a plain-code check that each question is on its page.
 - `src/cgm/topics.py`: milestone 2. Tags buyer phrases, merges rewordings, groups them into named
-  topics with Claude (group, merge, split), and marks each topic's funnel stage. Learning-stage
-  topics are kept in topics.csv but dropped from every later step; the tool covers only comparing
-  and choosing. Runs the pair test when the run has reviewed verdicts, and has Claude Fable judge
+  topics with Claude (group and merge three times, a majority vote, then split), and marks each
+  topic's funnel stage. Learning-stage topics are kept in topics.csv but dropped from every later
+  step; the tool covers only comparing and choosing. Runs the pair test when the run has reviewed verdicts, and has Claude Fable judge
   40 random topics blind for lumping and for stage (the lump and stage checks).
 - `src/cgm/sitemaps.py`: milestone 3, rung 1. Reads every compared site's sitemaps (robots.txt,
   sitemap indexes, gzip) through `PageFetcher`, parses them with defusedxml, and names every
