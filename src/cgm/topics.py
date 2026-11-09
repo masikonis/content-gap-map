@@ -41,7 +41,7 @@ from cgm.text import words
 
 MODEL = "sonnet"
 TAG_BATCH = 150
-ONE_PASS = 2500
+ONE_PASS = 3000
 VOTES = 3  # grouping runs; two phrases share a topic only when most runs put them together
 GROUP_BATCH = 400
 MERGE_EXAMPLES = 15

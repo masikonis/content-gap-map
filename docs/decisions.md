@@ -469,12 +469,14 @@ topics. Without the rule, every town would land in one "who offers this in my ci
 the gap a local business can act on: a competitor with pages for towns it serves too.
 - **How:** plain code first merges rewordings: the same words in any order or form, ignoring years
   and the words reddit, quora and youtube. Claude then groups the rest under the topic rule. Up to
-  2,500 phrases go in one call, so a question is never split across calls; a longer list is split
+  3,000 phrases go in one call, so a question is never split across calls; a longer list is split
   by its nearest seed (seeds and compared brands). Each topic is named as a question ending in
   "?". The limit was 1,000 until brand searches pushed the demo to about 1,900 phrases: grouped
   seed by seed, each check passed most runs but never two in a row; in one call, the next two
-  runs passed all three. What it costs: the one call's answer reached 54,000 tokens on the demo
-  and 81,000 on a larger list, so a much longer list falls back to seed batches.
+  runs passed all three. The limit then rose from 2,500 to 3,000, after a larger list landed just
+  over 2,500 on one run, fell back to seed batches and missed a check. What it costs: the one
+  call's answer reached 54,000 tokens on the demo and 81,000 on a larger list, so a much longer
+  list falls back to seed batches.
 - **Three groupings, majority vote:** the grouping and its merge pass run three times, and plain
   code joins two phrases only when at least two of the three put them together; a phrase no
   majority places with another is a topic of its own, and each topic takes the name its phrases
