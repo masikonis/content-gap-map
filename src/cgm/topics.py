@@ -61,8 +61,7 @@ Below are numbered search phrases people typed. List the numbers of the buyer ph
 phrase is {buyer}
 
 Also leave out phrases not written in the language with code "{language}", and navigation or junk
-searches: logins, downloads, phrases that contain a dollar amount, or a place far outside the
-country with code "{country}".
+searches: logins, downloads, phrases that contain a dollar amount, or {places}.
 
 Phrases:
 {phrases}"""
@@ -259,13 +258,22 @@ def nearest_seed(phrase: str, seeds: list[str]) -> str:
     return max(seeds, key=lambda s: len(words(s) & pw))
 
 
+def far_places(client: Client) -> str:
+    """The places a buyer phrase can't be about: outside the country, and for a local business
+    with an area set, far outside where it works."""
+    outside = f'a place far outside the country with code "{client.country}"'
+    if client.area:
+        return f'{outside} or far outside the area the business serves ({client.area})'
+    return outside
+
+
 def tag(client: Client, phrases: list[str], trace: Path) -> set[str]:
     rule = profile(client.site_type).buyer
     buyers = set()
     for i in range(0, len(phrases), TAG_BATCH):
         batch = phrases[i:i + TAG_BATCH]
         prompt = TAG_PROMPT.format(site_type=client.site_type, services=", ".join(client.seeds),
-                                   buyer=rule, language=client.language, country=client.country,
+                                   buyer=rule, language=client.language, places=far_places(client),
                                    phrases=numbered(batch))
         answer = claude.ask(prompt, TAG_SCHEMA, MODEL, trace, f"topics: tag batch {i // TAG_BATCH + 1}")
         buyers.update(batch[n - 1] for n in answer["buyer"] if 1 <= n <= len(batch))

@@ -92,7 +92,7 @@ Client data lives under `private/` (gitignored); the public demo uses the same l
 
 ```
 private/blocklist.txt          terms the local pre-commit hook refuses to commit
-<client>/client.toml           sites, seeds, language, country, site type
+<client>/client.toml           sites, seeds, language, country, site type, optional service area
 <client>/decisions.md          decisions and findings about this client (private clients only)
 <client>/answer-key/           "People also ask" questions, buyer-tags.csv, stage-tags.csv, and
                                site-search-<date>.csv (Google's pick of each site's page)

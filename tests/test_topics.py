@@ -102,3 +102,13 @@ def test_vote_keeps_pairs_most_groupings_agree_on():
     topics = sorted(vote([first, second, third]))
     # cost and price agree in all three; fees joins nothing in two of three, near me neither.
     assert topics == [("Cost?", ["cost", "price"]), ("Fees?", ["fees"]), ("Near me?", ["near me"])]
+
+
+def test_far_places_adds_the_service_area_only_when_set():
+    from cgm.client import Client, Site
+    from cgm.topics import far_places
+    site = Site("Piano", "https://p.example")
+    national = Client(None, "x", "services", "en", "us", [], site, [])
+    local = Client(None, "x", "services", "en", "us", [], site, [], area="Springfield, Illinois")
+    assert far_places(national) == 'a place far outside the country with code "us"'
+    assert far_places(local).endswith("far outside the area the business serves (Springfield, Illinois)")

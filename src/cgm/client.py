@@ -23,6 +23,7 @@ class Client:
     seeds: list[str]
     primary: Site
     competitors: list[Site]
+    area: str = ""  # where a local business works; phrases about places far outside it are junk
 
 
 def load_client(folder: Path) -> Client:
@@ -40,6 +41,7 @@ def load_client(folder: Path) -> Client:
             seeds=data["seeds"],
             primary=Site(**data["primary"]),
             competitors=[Site(**c) for c in data.get("competitors", [])],
+            area=data.get("area", ""),
         )
     except KeyError as missing:
         raise SystemExit(f"{path} is missing {missing}.")

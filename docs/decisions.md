@@ -457,7 +457,11 @@ reviewing in a browser is needed often.
 - **What gets grouped:** real collected phrases only (no predicted questions), after Claude
   (Sonnet) tags each one as a buyer phrase or not under the site's profile rule. Phrases in another
   language, logins, downloads, phrases with a dollar amount and far-away places are left out as
-  junk. Only buyer phrases are grouped.
+  junk. Only buyer phrases are grouped. A local business can set its service area in the client
+  file (`area`, such as "Springfield and nearby towns, Illinois"); phrases about places far
+  outside it are junk too, since a business can't win buyers in a town it never serves. Without
+  it, the rule only drops places outside the country, and on a local business's long tail,
+  far-away towns kept turning up as lumped topics.
 - **The topic rule:** a topic is what one good page on a site would answer, so one page could
   fully answer every phrase in it. A variation that page would cover in a section (a year, "free",
   "best", a device) stays in the topic. Three kinds of phrase need different pages even on one

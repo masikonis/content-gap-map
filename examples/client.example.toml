@@ -5,6 +5,8 @@ name = "Example Client"
 site_type = "services"   # b2b-software, services, publisher or generic
 language = "en"
 country = "us"
+# Optional, for a local business: where it works. Searches about places far outside it are dropped.
+area = "Springfield and nearby towns, Illinois"
 
 # Starting phrases for question collection: short category phrases for what the business sells,
 # optionally with a town. Autocomplete grows suggestions from the start of a phrase, so keep them short.
