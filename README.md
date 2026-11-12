@@ -68,7 +68,7 @@ commands, using `demo/email-marketing` in place of a name.
 
 ```
 uv run cgm autocomplete <name>   # collect autocomplete suggestions into a new run
-uv run cgm brands <name>         # add brand searches to a run collected before they existed
+uv run cgm extend <name>         # add searches for seeds and brands added after the run
 uv run cgm searchconsole <name>  # add your own Search Console exports (see CLAUDE.md)
 uv run cgm websearch <name>      # optional: questions people wrote online, checked on the page
 uv run cgm predicted <name>      # optional: predicted AI-assistant questions, scored apart

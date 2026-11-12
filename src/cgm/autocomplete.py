@@ -86,12 +86,14 @@ def run(client: Client) -> Path:
     return out
 
 
-def add_brands(client: Client, out: Path) -> None:
-    """Add the brand searches to a run that was collected before they existed."""
+def add_missing(client: Client, out: Path) -> None:
+    """Add the searches for seeds and brands added to the client file after the run was collected."""
     done = {row["seed"] for row in read_rows(out / "autocomplete.csv")}
-    queries = [(name, q) for name, q in brand_queries(client) if name not in done]
+    site = profile(client.site_type)
+    queries = ([(seed, q) for seed in client.seeds if seed not in done for q in expand(seed, site)]
+               + [(name, q) for name, q in brand_queries(client) if name not in done])
     if not queries:
-        print("This run already has the brand searches.")
+        print("This run already has every seed and brand.")
         return
     collect(client, out, queries)
 

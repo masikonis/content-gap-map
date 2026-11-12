@@ -191,8 +191,8 @@ stays open source and the project file is standard, so leaving it is easy.
   expanded again.
 - **Brand searches:** each compared business's name from the client file (the client's and its
   competitors'), with question words before it, the profile's brand words after it ("pricing",
-  "alternatives", "vs", "reviews") and a to z. About 54 requests per business. `cgm brands` adds
-  them to a run collected before they existed.
+  "alternatives", "vs", "reviews") and a to z. About 54 requests per business. `cgm extend` adds
+  them, and any seed added to the client file later, to a run collected before they existed.
 - **Pace and identity:** one request every 2 seconds, an honest crawler name with a link to this
   repository, backing off when asked to slow down, and stopping with a "blocked" report rather
   than working around a block.

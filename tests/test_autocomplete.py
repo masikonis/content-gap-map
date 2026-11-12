@@ -67,3 +67,16 @@ def test_brand_queries_cover_each_compared_business_once():
     texts = [q for _, q in queries]
     assert "acme pricing" in texts and "is keys" in texts and "keys z" in texts
     assert len(texts) == len(set(texts))
+
+
+def test_add_missing_collects_only_new_seeds_and_brands(tmp_path, monkeypatch):
+    from cgm import autocomplete
+    from cgm.client import Client, Site
+    (tmp_path / "autocomplete.csv").write_text("seed,query,suggestion,rank,relevance,time\n"
+                                               "piano lessons,piano lessons,x,1,,t\nAcme,acme,y,1,,t\n")
+    client = Client(tmp_path, "x", "services", "en", "us", ["piano lessons", "piano lessons springfield"],
+                    Site("Acme", "https://acme.example"), [Site("Keys", "https://keys.example")])
+    sent = []
+    monkeypatch.setattr(autocomplete, "collect", lambda c, out, queries: sent.extend(queries))
+    autocomplete.add_missing(client, tmp_path)
+    assert {seed for seed, _ in sent} == {"piano lessons springfield", "Keys"}

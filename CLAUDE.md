@@ -74,7 +74,7 @@
 ```
 uv run pytest                          # tests
 uv run cgm autocomplete <client>       # starts a new run folder (seeds and brand searches)
-uv run cgm brands <client>             # adds brand searches to a run collected before them
+uv run cgm extend <client>             # adds searches for seeds and brands added after a run
 uv run cgm searchconsole <client>      # merges the client's Search Console zips into the latest run
 uv run cgm websearch <client>          # optional: adds to the latest run (or --run <name>)
 uv run cgm predicted <client>          # optional: predicted AI-style questions, never demand
