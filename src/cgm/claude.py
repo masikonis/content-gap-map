@@ -25,7 +25,8 @@ def ask(prompt: str, schema: dict, model: str, trace: Path, label: str, tools: s
     record = {"time": started.isoformat(timespec="seconds"), "label": label, "model": model,
               "prompt": prompt}
     try:
-        done = subprocess.run(command, capture_output=True, text=True, timeout=900)
+        done = subprocess.run(command, capture_output=True, text=True, timeout=900,
+                              stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
         write_trace(trace, {**record, "error": "timed out after 900 seconds"})
         raise RuntimeError(f"claude timed out for {label}")
